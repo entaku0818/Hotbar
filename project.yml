@@ -1,0 +1,45 @@
+name: Hotbar
+options:
+  bundleIdPrefix: com.entaku
+  deploymentTarget:
+    macOS: "13.0"
+  xcodeVersion: "15.0"
+  generateEmptyDirectories: true
+
+settings:
+  base:
+    SWIFT_VERSION: 5.9
+    MACOSX_DEPLOYMENT_TARGET: "13.0"
+    CODE_SIGN_STYLE: Automatic
+    DEVELOPMENT_TEAM: ""
+
+targets:
+  Hotbar:
+    type: application
+    platform: macOS
+    sources:
+      - Sources/Hotbar
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.entaku.Hotbar
+        INFOPLIST_FILE: Sources/Hotbar/Info.plist
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        LD_RUNPATH_SEARCH_PATHS: "$(inherited) @executable_path/../Frameworks"
+        ENABLE_HARDENED_RUNTIME: YES
+    entitlements:
+      path: Sources/Hotbar/Hotbar.entitlements
+      properties:
+        com.apple.security.app-sandbox: false
+        com.apple.security.automation.apple-events: true
+
+  HotbarTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - Sources/HotbarTests
+    dependencies:
+      - target: Hotbar
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.entaku.HotbarTests
+        GENERATE_INFOPLIST_FILE: YES

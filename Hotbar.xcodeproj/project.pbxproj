@@ -1,0 +1,438 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		0A09240E19DCB246AC8710BB /* WindowInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3917B0EAC9AC657A20EA1B06 /* WindowInfo.swift */; };
+		0A39EDE3C09052A070B5808D /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0E6D53A22A2A2681210878C /* OnboardingView.swift */; };
+		142EFAB10F67E88132F2FBEC /* WindowInfoTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0ACFE9F19048F82EB7BF58BD /* WindowInfoTests.swift */; };
+		14FD789DB2C56FBBC913525F /* HotbarStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 599BB33146DC51BA58085A55 /* HotbarStore.swift */; };
+		19CF7B4965B37E0C006C3B71 /* OverlayWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B74A331CD8B6B69AD90A3EF2 /* OverlayWindowController.swift */; };
+		24D00CCBABACB3B3BA4410D2 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 6571C4CA6B38676448ACE3E3 /* Assets.xcassets */; };
+		4BE288AFB063EB1B95B34B90 /* HotbarApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = DAE0060020A099E7B3786D4A /* HotbarApp.swift */; };
+		A7A9575F74F6B404AC4DC201 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4DC47A9345BC01A6499FEB1 /* AppDelegate.swift */; };
+		ABC1A1036E996B0B8279AFA5 /* OverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B61397C5AFE82048B3E3A553 /* OverlayView.swift */; };
+		E2A8EBDF5D9A523123417FDB /* HotKeyManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C504CA4B7DCC02EC6AB6313E /* HotKeyManager.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		90B89528EA13B0DF0D9C1975 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 96EDC215559641E05B225706 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 3C48BFEC5FC4D1708DF6A310;
+			remoteInfo = Hotbar;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		0775AF6317B784BE164245B6 /* Hotbar.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Hotbar.entitlements; sourceTree = "<group>"; };
+		0ACFE9F19048F82EB7BF58BD /* WindowInfoTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowInfoTests.swift; sourceTree = "<group>"; };
+		3917B0EAC9AC657A20EA1B06 /* WindowInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowInfo.swift; sourceTree = "<group>"; };
+		4043786DCD7C08A378648EDB /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		599BB33146DC51BA58085A55 /* HotbarStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotbarStore.swift; sourceTree = "<group>"; };
+		6571C4CA6B38676448ACE3E3 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		A0E6D53A22A2A2681210878C /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
+		AE4F9142FBC3C7C38AD90133 /* HotbarTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = HotbarTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		B61397C5AFE82048B3E3A553 /* OverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverlayView.swift; sourceTree = "<group>"; };
+		B74A331CD8B6B69AD90A3EF2 /* OverlayWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverlayWindowController.swift; sourceTree = "<group>"; };
+		C504CA4B7DCC02EC6AB6313E /* HotKeyManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotKeyManager.swift; sourceTree = "<group>"; };
+		D4DC47A9345BC01A6499FEB1 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		DAE0060020A099E7B3786D4A /* HotbarApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotbarApp.swift; sourceTree = "<group>"; };
+		E38B2840A45F115CE6235EDF /* Hotbar.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Hotbar.app; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		49DAFBBB56028B697A029976 /* Hotbar */ = {
+			isa = PBXGroup;
+			children = (
+				D4DC47A9345BC01A6499FEB1 /* AppDelegate.swift */,
+				6571C4CA6B38676448ACE3E3 /* Assets.xcassets */,
+				0775AF6317B784BE164245B6 /* Hotbar.entitlements */,
+				DAE0060020A099E7B3786D4A /* HotbarApp.swift */,
+				599BB33146DC51BA58085A55 /* HotbarStore.swift */,
+				C504CA4B7DCC02EC6AB6313E /* HotKeyManager.swift */,
+				4043786DCD7C08A378648EDB /* Info.plist */,
+				A0E6D53A22A2A2681210878C /* OnboardingView.swift */,
+				B61397C5AFE82048B3E3A553 /* OverlayView.swift */,
+				B74A331CD8B6B69AD90A3EF2 /* OverlayWindowController.swift */,
+				3917B0EAC9AC657A20EA1B06 /* WindowInfo.swift */,
+			);
+			name = Hotbar;
+			path = Sources/Hotbar;
+			sourceTree = "<group>";
+		};
+		89F2C9B98D459AF957C00630 = {
+			isa = PBXGroup;
+			children = (
+				49DAFBBB56028B697A029976 /* Hotbar */,
+				F2B6B9BB5D2DD1A50954D4EF /* HotbarTests */,
+				9B26312CF4F0229B75009B3F /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		9B26312CF4F0229B75009B3F /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				E38B2840A45F115CE6235EDF /* Hotbar.app */,
+				AE4F9142FBC3C7C38AD90133 /* HotbarTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		F2B6B9BB5D2DD1A50954D4EF /* HotbarTests */ = {
+			isa = PBXGroup;
+			children = (
+				0ACFE9F19048F82EB7BF58BD /* WindowInfoTests.swift */,
+			);
+			name = HotbarTests;
+			path = Sources/HotbarTests;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		3C48BFEC5FC4D1708DF6A310 /* Hotbar */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 8EDE514490B6F5217C6E5E23 /* Build configuration list for PBXNativeTarget "Hotbar" */;
+			buildPhases = (
+				4AB837EC113BCD2963613744 /* Sources */,
+				A8719ECB1E6EE997D5C4A6F0 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = Hotbar;
+			packageProductDependencies = (
+			);
+			productName = Hotbar;
+			productReference = E38B2840A45F115CE6235EDF /* Hotbar.app */;
+			productType = "com.apple.product-type.application";
+		};
+		4086C5311F7745083EBD1913 /* HotbarTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 36CEB24D1BE7D9E7613EF9E4 /* Build configuration list for PBXNativeTarget "HotbarTests" */;
+			buildPhases = (
+				E523862F94921A71C6775859 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				B9BCA4E5186FAD42E4B3D55A /* PBXTargetDependency */,
+			);
+			name = HotbarTests;
+			packageProductDependencies = (
+			);
+			productName = HotbarTests;
+			productReference = AE4F9142FBC3C7C38AD90133 /* HotbarTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		96EDC215559641E05B225706 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1500;
+				TargetAttributes = {
+					3C48BFEC5FC4D1708DF6A310 = {
+						DevelopmentTeam = "";
+						ProvisioningStyle = Automatic;
+					};
+					4086C5311F7745083EBD1913 = {
+						DevelopmentTeam = "";
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = 06408FF4D47A06E863231EC8 /* Build configuration list for PBXProject "Hotbar" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 89F2C9B98D459AF957C00630;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 9B26312CF4F0229B75009B3F /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				3C48BFEC5FC4D1708DF6A310 /* Hotbar */,
+				4086C5311F7745083EBD1913 /* HotbarTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		A8719ECB1E6EE997D5C4A6F0 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				24D00CCBABACB3B3BA4410D2 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		4AB837EC113BCD2963613744 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A7A9575F74F6B404AC4DC201 /* AppDelegate.swift in Sources */,
+				E2A8EBDF5D9A523123417FDB /* HotKeyManager.swift in Sources */,
+				4BE288AFB063EB1B95B34B90 /* HotbarApp.swift in Sources */,
+				14FD789DB2C56FBBC913525F /* HotbarStore.swift in Sources */,
+				0A39EDE3C09052A070B5808D /* OnboardingView.swift in Sources */,
+				ABC1A1036E996B0B8279AFA5 /* OverlayView.swift in Sources */,
+				19CF7B4965B37E0C006C3B71 /* OverlayWindowController.swift in Sources */,
+				0A09240E19DCB246AC8710BB /* WindowInfo.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E523862F94921A71C6775859 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				142EFAB10F67E88132F2FBEC /* WindowInfoTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		B9BCA4E5186FAD42E4B3D55A /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 3C48BFEC5FC4D1708DF6A310 /* Hotbar */;
+			targetProxy = 90B89528EA13B0DF0D9C1975 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		09AFA063E45D5DB50DC8BC55 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.9;
+			};
+			name = Debug;
+		};
+		4E0C95216310C9F010E81B00 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = Sources/Hotbar/Hotbar.entitlements;
+				COMBINE_HIDPI_IMAGES = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				INFOPLIST_FILE = Sources/Hotbar/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = com.entaku.Hotbar;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		5AAB8D52A59709C64086A971 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.entaku.HotbarTests;
+				SDKROOT = macosx;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Hotbar.app/Contents/MacOS/Hotbar";
+			};
+			name = Release;
+		};
+		67A7C0BD7DC1AE171A4D9FF2 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = Sources/Hotbar/Hotbar.entitlements;
+				COMBINE_HIDPI_IMAGES = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				INFOPLIST_FILE = Sources/Hotbar/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = com.entaku.Hotbar;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		A246C6469664FCA004BA93D7 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.entaku.HotbarTests;
+				SDKROOT = macosx;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Hotbar.app/Contents/MacOS/Hotbar";
+			};
+			name = Debug;
+		};
+		C6A1F0EA4B189A0E1099AC18 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = "";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.9;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		06408FF4D47A06E863231EC8 /* Build configuration list for PBXProject "Hotbar" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				09AFA063E45D5DB50DC8BC55 /* Debug */,
+				C6A1F0EA4B189A0E1099AC18 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		36CEB24D1BE7D9E7613EF9E4 /* Build configuration list for PBXNativeTarget "HotbarTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A246C6469664FCA004BA93D7 /* Debug */,
+				5AAB8D52A59709C64086A971 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		8EDE514490B6F5217C6E5E23 /* Build configuration list for PBXNativeTarget "Hotbar" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				67A7C0BD7DC1AE171A4D9FF2 /* Debug */,
+				4E0C95216310C9F010E81B00 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 96EDC215559641E05B225706 /* Project object */;
+}
