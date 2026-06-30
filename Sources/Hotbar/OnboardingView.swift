@@ -29,13 +29,13 @@ struct OnboardingView: View {
         OnboardingStep(
             icon: "square.grid.2x2",
             title: "Browse Your Windows",
-            description: "All open windows appear as thumbnails in the grid. Click any window or use arrow keys to switch to it instantly.",
+            description: "All open windows appear as thumbnails in the grid. Click or use arrow keys to switch to it instantly.",
             action: nil
         ),
         OnboardingStep(
             icon: "1.square.fill",
             title: "Use the Hotbar",
-            description: "Hold a number key (1–9) while the overlay is open to register a window to that slot. Press ⌘+1–9 to jump directly to it later.",
+            description: "Hold a number key (1–9) to register a window to that slot. Press ⌘+1–9 to jump directly to it later.",
             action: nil
         )
     ]
@@ -44,9 +44,9 @@ struct OnboardingView: View {
         VStack(spacing: 0) {
             // Step indicator
             HStack(spacing: 8) {
-                ForEach(0..<steps.count, id: \.self) { i in
+                ForEach(0..<steps.count, id: \.self) { idx in
                     Circle()
-                        .fill(i <= currentStep ? Color.accentColor : Color.secondary.opacity(0.3))
+                        .fill(idx <= currentStep ? Color.accentColor : Color.secondary.opacity(0.3))
                         .frame(width: 8, height: 8)
                         .animation(.spring(), value: currentStep)
                 }
@@ -132,9 +132,8 @@ struct OnboardingView: View {
     }
 
     private func handleStepAction() {
-        if currentStep == 1 {
-            // Open Accessibility preferences
-            let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility")!
+        if currentStep == 1,
+           let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility") {
             NSWorkspace.shared.open(url)
         }
     }

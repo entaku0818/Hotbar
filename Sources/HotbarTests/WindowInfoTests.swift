@@ -6,15 +6,15 @@ final class WindowInfoTests: XCTestCase {
     // MARK: - WindowInfo equality
 
     func testWindowInfoEqualityBasedOnID() {
-        let w1 = makeWindow(id: 100, title: "Test Window", appName: "TestApp")
-        let w2 = makeWindow(id: 100, title: "Different Title", appName: "DifferentApp")
-        XCTAssertEqual(w1, w2, "Windows with same ID must be equal regardless of other fields")
+        let windowA = makeWindow(id: 100, title: "Test Window", appName: "TestApp")
+        let windowB = makeWindow(id: 100, title: "Different Title", appName: "DifferentApp")
+        XCTAssertEqual(windowA, windowB, "Windows with same ID must be equal regardless of other fields")
     }
 
     func testWindowInfoInequalityDifferentID() {
-        let w1 = makeWindow(id: 100)
-        let w2 = makeWindow(id: 200)
-        XCTAssertNotEqual(w1, w2)
+        let windowA = makeWindow(id: 100)
+        let windowB = makeWindow(id: 200)
+        XCTAssertNotEqual(windowA, windowB)
     }
 
     // MARK: - WindowFetcher
@@ -48,8 +48,13 @@ final class HotbarStoreTests: XCTestCase {
 
     override func setUp() {
         super.setUp()
-        testDefaults = UserDefaults(suiteName: "com.entaku.HotbarTests.\(name)")!
-        testDefaults.removePersistentDomain(forName: "com.entaku.HotbarTests.\(name)")
+        let suiteName = "com.entaku.HotbarTests.\(name)"
+        guard let defaults = UserDefaults(suiteName: suiteName) else {
+            XCTFail("Failed to create UserDefaults suite")
+            return
+        }
+        testDefaults = defaults
+        testDefaults.removePersistentDomain(forName: suiteName)
         store = HotbarStore(defaults: testDefaults)
     }
 
@@ -76,12 +81,12 @@ final class HotbarStoreTests: XCTestCase {
     }
 
     func testAssignSlotAllNineSlots() {
-        for i in 1...9 {
-            store.assignSlot(index: i, windowInfo: makeWindow(id: CGWindowID(i * 10)))
+        for slot in 1...9 {
+            store.assignSlot(index: slot, windowInfo: makeWindow(id: CGWindowID(slot * 10)))
         }
         XCTAssertEqual(store.slots.count, 9)
-        for i in 1...9 {
-            XCTAssertNotNil(store.slots[i], "Slot \(i) should be set")
+        for slot in 1...9 {
+            XCTAssertNotNil(store.slots[slot], "Slot \(slot) should be set")
         }
     }
 
@@ -120,13 +125,13 @@ final class HotbarStoreTests: XCTestCase {
     }
 
     func testPersistencePreservesAllSlots() {
-        for i in 1...9 {
-            store.assignSlot(index: i, windowInfo: makeWindow(id: CGWindowID(i * 100), appName: "App\(i)"))
+        for slot in 1...9 {
+            store.assignSlot(index: slot, windowInfo: makeWindow(id: CGWindowID(slot * 100), appName: "App\(slot)"))
         }
         let store2 = HotbarStore(defaults: testDefaults)
-        for i in 1...9 {
-            XCTAssertNotNil(store2.slots[i], "Slot \(i) must survive reload")
-            XCTAssertEqual(store2.slots[i]?.id, CGWindowID(i * 100))
+        for slot in 1...9 {
+            XCTAssertNotNil(store2.slots[slot], "Slot \(slot) must survive reload")
+            XCTAssertEqual(store2.slots[slot]?.id, CGWindowID(slot * 100))
         }
     }
 
@@ -160,8 +165,13 @@ final class HoldKeyDetectorTests: XCTestCase {
 
     override func setUp() {
         super.setUp()
-        testDefaults = UserDefaults(suiteName: "com.entaku.HotbarTests.HoldKey.\(name)")!
-        testDefaults.removePersistentDomain(forName: "com.entaku.HotbarTests.HoldKey.\(name)")
+        let suiteName = "com.entaku.HotbarTests.HoldKey.\(name)"
+        guard let defaults = UserDefaults(suiteName: suiteName) else {
+            XCTFail("Failed to create UserDefaults suite")
+            return
+        }
+        testDefaults = defaults
+        testDefaults.removePersistentDomain(forName: suiteName)
         store = HotbarStore(defaults: testDefaults)
     }
 
@@ -247,7 +257,7 @@ final class HoldKeyDetectorTests: XCTestCase {
         var token: NSObjectProtocol?
         token = NotificationCenter.default.addObserver(forName: .hotbarSlotAssigned, object: nil, queue: .main) { _ in
             exp.fulfill()
-            if let t = token { NotificationCenter.default.removeObserver(t) }
+            if let observer = token { NotificationCenter.default.removeObserver(observer) }
         }
 
         detector.start(digit: 2)

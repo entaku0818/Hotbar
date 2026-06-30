@@ -3,7 +3,7 @@ import AppKit
 
 struct OverlayView: View {
     @EnvironmentObject var store: HotbarStore
-    @State private var slotAssigned: Int? = nil
+    @State private var slotAssigned: Int?
 
     var body: some View {
         ZStack {
@@ -196,7 +196,8 @@ struct HotbarSlot: View {
                     .overlay(
                         RoundedRectangle(cornerRadius: 8)
                             .strokeBorder(
-                                isJustAssigned ? Color.yellow : (window != nil ? Color.accentColor.opacity(0.5) : Color.white.opacity(0.1)),
+                                isJustAssigned ? Color.yellow :
+                                    (window != nil ? Color.accentColor.opacity(0.5) : Color.white.opacity(0.1)),
                                 lineWidth: isJustAssigned ? 2 : 1
                             )
                     )

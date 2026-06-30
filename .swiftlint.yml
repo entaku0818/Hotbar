@@ -1,0 +1,20 @@
+excluded:
+  - Hotbar.xcodeproj
+  - DerivedData
+
+opt_in_rules:
+  - empty_count
+  - force_unwrapping
+
+identifier_name:
+  min_length:
+    warning: 2
+    error: 2
+  excluded:
+    - id
+
+line_length:
+  warning: 140
+  error: 200
+  ignores_comments: true
+  ignores_urls: true

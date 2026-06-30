@@ -30,7 +30,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func setupHotKeys() {
-        hotKeyManager = HotKeyManager(overlayController: overlayWindowController!)
+        guard let controller = overlayWindowController else { return }
+        hotKeyManager = HotKeyManager(overlayController: controller)
         hotKeyManager?.start()
     }
 
