@@ -4,3 +4,6 @@ xcuserdata/
 DerivedData/
 .build/
 *.resolved
+build/*.dmg
+build/*.zip
+*.xcarchive
