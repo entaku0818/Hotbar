@@ -70,7 +70,10 @@ struct WindowGridView: View {
 
     var body: some View {
         ScrollView {
-            if windows.isEmpty {
+            if !AXIsProcessTrusted() {
+                AccessibilityPromptView()
+                    .frame(maxWidth: .infinity, minHeight: 200)
+            } else if windows.isEmpty {
                 VStack(spacing: 12) {
                     Image(systemName: "rectangle.on.rectangle.slash")
                         .font(.system(size: 40))
@@ -157,6 +160,32 @@ struct WindowCell: View {
         .contentShape(Rectangle())
         .scaleEffect(isSelected ? 1.03 : 1.0)
         .animation(.spring(response: 0.2), value: isSelected)
+    }
+}
+
+// MARK: - Accessibility prompt
+
+struct AccessibilityPromptView: View {
+    var body: some View {
+        VStack(spacing: 16) {
+            Image(systemName: "lock.shield")
+                .font(.system(size: 40))
+                .foregroundStyle(.orange)
+            Text("Accessibility Access Required")
+                .font(.headline)
+                .foregroundStyle(.primary)
+            Text("Grant access in System Settings to browse and switch windows.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+                .frame(maxWidth: 300)
+            Button("Open System Settings") {
+                if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility") {
+                    NSWorkspace.shared.open(url)
+                }
+            }
+            .buttonStyle(.bordered)
+        }
     }
 }
 
