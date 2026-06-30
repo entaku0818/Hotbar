@@ -1,5 +1,4 @@
 import AppKit
-import Carbon
 
 final class HotKeyManager {
     private weak var overlayController: OverlayWindowController?
@@ -91,14 +90,24 @@ final class HoldKeyDetector {
     static let shared = HoldKeyDetector()
 
     private var timer: Timer?
-    private var currentDigit: Int?
-    private let holdDuration: TimeInterval = 0.5
+    private(set) var currentDigit: Int?
+    let holdDuration: TimeInterval
+
+    private let store: HotbarStore
+
+    // Production init
+    convenience init() {
+        self.init(holdDuration: 0.5, store: .shared)
+    }
+
+    // Testable init
+    init(holdDuration: TimeInterval, store: HotbarStore) {
+        self.holdDuration = holdDuration
+        self.store = store
+    }
 
     func start(digit: Int) {
-        if currentDigit == digit {
-            // Already tracking this digit
-            return
-        }
+        if currentDigit == digit { return }
         cancel()
         currentDigit = digit
         timer = Timer.scheduledTimer(withTimeInterval: holdDuration, repeats: false) { [weak self] _ in
@@ -112,14 +121,13 @@ final class HoldKeyDetector {
         currentDigit = nil
     }
 
-    private func triggerRegister() {
+    func triggerRegister() {
         guard let digit = currentDigit else { return }
-        let store = HotbarStore.shared
-        guard let selectedWindow = store.windows.indices.contains(store.selectedIndex)
-            ? store.windows[store.selectedIndex] : nil else {
+        guard store.windows.indices.contains(store.selectedIndex) else {
             cancel()
             return
         }
+        let selectedWindow = store.windows[store.selectedIndex]
         store.assignSlot(index: digit, windowInfo: selectedWindow)
         NotificationCenter.default.post(name: .hotbarSlotAssigned, object: digit)
         cancel()

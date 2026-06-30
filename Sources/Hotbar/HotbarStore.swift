@@ -9,8 +9,16 @@ final class HotbarStore: ObservableObject {
     @Published var selectedIndex: Int = 0
 
     private let slotsKey = "hotbarSlots"
+    private let defaults: UserDefaults
 
     private init() {
+        self.defaults = .standard
+        loadSlots()
+    }
+
+    // Testable initializer with custom UserDefaults suite
+    init(defaults: UserDefaults) {
+        self.defaults = defaults
         loadSlots()
     }
 
@@ -22,7 +30,13 @@ final class HotbarStore: ObservableObject {
     }
 
     func assignSlot(index: Int, windowInfo: WindowInfo) {
+        guard index >= 1 && index <= 9 else { return }
         slots[index] = windowInfo
+        saveSlots()
+    }
+
+    func clearSlot(index: Int) {
+        slots.removeValue(forKey: index)
         saveSlots()
     }
 
@@ -37,7 +51,7 @@ final class HotbarStore: ObservableObject {
 
     // MARK: - Persistence
 
-    private func saveSlots() {
+    func saveSlots() {
         var encoded: [String: [String: String]] = [:]
         for (key, value) in slots {
             encoded["\(key)"] = [
@@ -48,11 +62,11 @@ final class HotbarStore: ObservableObject {
                 "pid": "\(value.pid)"
             ]
         }
-        UserDefaults.standard.set(encoded, forKey: slotsKey)
+        defaults.set(encoded, forKey: slotsKey)
     }
 
-    private func loadSlots() {
-        guard let encoded = UserDefaults.standard.dictionary(forKey: slotsKey) as? [String: [String: String]] else {
+    func loadSlots() {
+        guard let encoded = defaults.dictionary(forKey: slotsKey) as? [String: [String: String]] else {
             return
         }
         var restored: [Int: WindowInfo] = [:]
