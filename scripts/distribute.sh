@@ -52,7 +52,7 @@ if [ -z "${APPLE_ID:-}" ] || [ -z "${NOTARYTOOL_PASSWORD:-}" ]; then
   echo "      ⚠ APPLE_ID / NOTARYTOOL_PASSWORD not set – skipping notarization"
   echo "      Set them and re-run, or run manually:"
   echo "        xcrun notarytool submit ${APP_PATH} \\"
-  echo "          --apple-id YOUR_APPLE_ID \\"
+  echo "          --apple-id entaku19890818@gmail.com \\"
   echo "          --password YOUR_APP_SPECIFIC_PASSWORD \\"
   echo "          --team-id ${TEAM_ID} --wait"
 else
