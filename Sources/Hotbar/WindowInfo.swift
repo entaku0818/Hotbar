@@ -86,27 +86,31 @@ final class WindowFetcher {
     }
 
     static func activateWindow(_ windowInfo: WindowInfo) {
-        let apps = NSWorkspace.shared.runningApplications
-        guard let app = apps.first(where: { $0.processIdentifier == windowInfo.pid }) else { return }
+        // Raise the specific window via AX first, then bring the app forward.
+        // The overlay must already be hidden before this is called so it doesn't
+        // steal focus back.
+        let axApp = AXUIElementCreateApplication(windowInfo.pid)
 
-        app.activate(options: [])
-
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-            let axApp = AXUIElementCreateApplication(windowInfo.pid)
-            var windowsRef: CFTypeRef?
-            guard AXUIElementCopyAttributeValue(axApp, kAXWindowsAttribute as CFString, &windowsRef) == .success,
-                  let axWindows = windowsRef as? [AXUIElement] else { return }
-
+        // Try to raise the exact window by title match
+        var windowsRef: CFTypeRef?
+        if AXUIElementCopyAttributeValue(axApp, kAXWindowsAttribute as CFString, &windowsRef) == .success,
+           let axWindows = windowsRef as? [AXUIElement] {
             for axWindow in axWindows {
                 var titleRef: CFTypeRef?
                 AXUIElementCopyAttributeValue(axWindow, kAXTitleAttribute as CFString, &titleRef)
-                let axTitle = titleRef as? String ?? ""
-                if axTitle == windowInfo.title {
+                if (titleRef as? String) == windowInfo.title {
                     AXUIElementSetAttributeValue(axWindow, kAXMainAttribute as CFString, kCFBooleanTrue)
                     AXUIElementSetAttributeValue(axWindow, kAXFrontmostAttribute as CFString, kCFBooleanTrue)
                     break
                 }
             }
         }
+
+        // Bring the owning app to the foreground
+        AXUIElementSetAttributeValue(axApp, kAXFrontmostAttribute as CFString, kCFBooleanTrue)
+
+        // Fallback: NSRunningApplication.activate for apps that don't expose AX
+        let apps = NSWorkspace.shared.runningApplications
+        apps.first(where: { $0.processIdentifier == windowInfo.pid })?.activate(options: [])
     }
 }

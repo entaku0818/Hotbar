@@ -106,8 +106,11 @@ struct WindowGridView: View {
                         )
                         .onTapGesture {
                             selectedIndex = index
-                            HotbarStore.shared.activateWindow(window)
+                            // Hide overlay first so it doesn't steal focus
                             NotificationCenter.default.post(name: .hideOverlay, object: nil)
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.08) {
+                                HotbarStore.shared.activateWindow(window)
+                            }
                         }
                         .onHover { hovering in
                             if hovering {

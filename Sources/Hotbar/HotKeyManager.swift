@@ -61,9 +61,10 @@ final class HotKeyManager {
            let char = event.charactersIgnoringModifiers,
            let digit = Int(char),
            digit >= 1 && digit <= 9 {
-            let store = HotbarStore.shared
-            store.activateSlot(index: digit)
             controller.hide()
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.08) {
+                HotbarStore.shared.activateSlot(index: digit)
+            }
             return nil
         }
 
