@@ -4,6 +4,7 @@ import AppKit
 struct OverlayView: View {
     @EnvironmentObject var store: HotbarStore
     @State private var slotAssigned: Int?
+    @State private var isAccessibilityGranted = AXIsProcessTrusted()
 
     var body: some View {
         ZStack {
@@ -32,8 +33,12 @@ struct OverlayView: View {
                 .padding(.top, 16)
 
                 // Window grid (upper section)
-                WindowGridView(windows: store.windows, selectedIndex: $store.selectedIndex)
-                    .frame(maxHeight: 380)
+                WindowGridView(
+                    windows: store.windows,
+                    selectedIndex: $store.selectedIndex,
+                    isAccessibilityGranted: isAccessibilityGranted
+                )
+                .frame(maxHeight: 380)
 
                 Divider()
                     .padding(.horizontal, 20)
@@ -45,6 +50,15 @@ struct OverlayView: View {
             }
         }
         .frame(width: 900, height: 560)
+        .onReceive(Timer.publish(every: 0.5, on: .main, in: .common).autoconnect()) { _ in
+            let trusted = AXIsProcessTrusted()
+            if trusted != isAccessibilityGranted {
+                isAccessibilityGranted = trusted
+                if trusted {
+                    store.refreshWindows()
+                }
+            }
+        }
         .onReceive(NotificationCenter.default.publisher(for: .hotbarSlotAssigned)) { notification in
             if let digit = notification.object as? Int {
                 withAnimation(.spring(response: 0.3)) {
@@ -63,6 +77,7 @@ struct OverlayView: View {
 struct WindowGridView: View {
     let windows: [WindowInfo]
     @Binding var selectedIndex: Int
+    let isAccessibilityGranted: Bool
 
     private let columns = [
         GridItem(.adaptive(minimum: 160, maximum: 200), spacing: 12)
@@ -70,7 +85,7 @@ struct WindowGridView: View {
 
     var body: some View {
         ScrollView {
-            if !AXIsProcessTrusted() {
+            if !isAccessibilityGranted {
                 AccessibilityPromptView()
                     .frame(maxWidth: .infinity, minHeight: 200)
             } else if windows.isEmpty {
@@ -174,17 +189,26 @@ struct AccessibilityPromptView: View {
             Text("Accessibility Access Required")
                 .font(.headline)
                 .foregroundStyle(.primary)
-            Text("Grant access in System Settings to browse and switch windows.")
+            Text("Grant access in System Settings, then click Refresh.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
                 .frame(maxWidth: 300)
-            Button("Open System Settings") {
-                if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility") {
-                    NSWorkspace.shared.open(url)
+            HStack(spacing: 10) {
+                Button("Open System Settings") {
+                    if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility") {
+                        NSWorkspace.shared.open(url)
+                    }
                 }
+                .buttonStyle(.bordered)
+
+                Button {
+                    HotbarStore.shared.refreshWindows()
+                } label: {
+                    Label("Refresh", systemImage: "arrow.clockwise")
+                }
+                .buttonStyle(.borderedProminent)
             }
-            .buttonStyle(.bordered)
         }
     }
 }
