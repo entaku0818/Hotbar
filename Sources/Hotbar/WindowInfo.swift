@@ -86,31 +86,61 @@ final class WindowFetcher {
     }
 
     static func activateWindow(_ windowInfo: WindowInfo) {
-        // Raise the specific window via AX first, then bring the app forward.
-        // The overlay must already be hidden before this is called so it doesn't
-        // steal focus back.
-        let axApp = AXUIElementCreateApplication(windowInfo.pid)
+        NSLog("[Hotbar] activateWindow: pid=%d app=%@ title=%@", windowInfo.pid, windowInfo.appName, windowInfo.title)
 
-        // Try to raise the exact window by title match
+        let apps = NSWorkspace.shared.runningApplications
+        guard let app = apps.first(where: { $0.processIdentifier == windowInfo.pid }) else {
+            NSLog("[Hotbar] activateWindow: app not found for pid=%d", windowInfo.pid)
+            return
+        }
+
+        // Step 1: AX で特定ウィンドウを前面に
+        let axApp = AXUIElementCreateApplication(windowInfo.pid)
         var windowsRef: CFTypeRef?
-        if AXUIElementCopyAttributeValue(axApp, kAXWindowsAttribute as CFString, &windowsRef) == .success,
-           let axWindows = windowsRef as? [AXUIElement] {
+        let axResult = AXUIElementCopyAttributeValue(axApp, kAXWindowsAttribute as CFString, &windowsRef)
+        NSLog("[Hotbar] AXCopyWindows result=%d", axResult.rawValue)
+
+        if axResult == .success, let axWindows = windowsRef as? [AXUIElement] {
+            NSLog("[Hotbar] AX windows count=%d", axWindows.count)
+            var matched = false
             for axWindow in axWindows {
                 var titleRef: CFTypeRef?
                 AXUIElementCopyAttributeValue(axWindow, kAXTitleAttribute as CFString, &titleRef)
-                if (titleRef as? String) == windowInfo.title {
+                let axTitle = titleRef as? String ?? ""
+                NSLog("[Hotbar] AX window title='%@'", axTitle)
+                if axTitle == windowInfo.title {
                     AXUIElementSetAttributeValue(axWindow, kAXMainAttribute as CFString, kCFBooleanTrue)
                     AXUIElementSetAttributeValue(axWindow, kAXFrontmostAttribute as CFString, kCFBooleanTrue)
+                    matched = true
+                    NSLog("[Hotbar] AX raise matched window")
                     break
+                }
+            }
+            if !matched {
+                // タイトルが変わっていても最初のウィンドウを前面に
+                if let first = axWindows.first {
+                    AXUIElementSetAttributeValue(first, kAXMainAttribute as CFString, kCFBooleanTrue)
+                    AXUIElementSetAttributeValue(first, kAXFrontmostAttribute as CFString, kCFBooleanTrue)
+                    NSLog("[Hotbar] AX raise first window (title mismatch fallback)")
                 }
             }
         }
 
-        // Bring the owning app to the foreground
+        // Step 2: アプリを前面に
         AXUIElementSetAttributeValue(axApp, kAXFrontmostAttribute as CFString, kCFBooleanTrue)
 
-        // Fallback: NSRunningApplication.activate for apps that don't expose AX
-        let apps = NSWorkspace.shared.runningApplications
-        apps.first(where: { $0.processIdentifier == windowInfo.pid })?.activate(options: [])
+        // Step 3: NSRunningApplication でも activate（AX が効かないアプリ用）
+        let activated = app.activate(options: [.activateIgnoringOtherApps])
+        NSLog("[Hotbar] NSRunningApplication.activate result=%d", activated ? 1 : 0)
+
+        // Step 4: AppleScript fallback
+        if !activated {
+            let src = "tell application \"\(windowInfo.appName)\" to activate"
+            if let script = NSAppleScript(source: src) {
+                var err: NSDictionary?
+                script.executeAndReturnError(&err)
+                if let err { NSLog("[Hotbar] AppleScript error: %@", err) }
+            }
+        }
     }
 }

@@ -3,6 +3,7 @@ import AppKit
 final class HotKeyManager {
     private weak var overlayController: OverlayWindowController?
     private var globalMonitor: Any?
+    // Local monitor is kept only as a safety net; real work happens in global monitor
     private var localMonitor: Any?
 
     init(overlayController: OverlayWindowController) {
@@ -10,79 +11,88 @@ final class HotKeyManager {
     }
 
     func start() {
-        // Global monitor: ⌘+Space でオーバーレイ表示
-        globalMonitor = NSEvent.addGlobalMonitorForEvents(matching: .keyDown) { [weak self] event in
-            self?.handleKeyEvent(event)
+        // Global monitor handles ALL key events — including overlay interactions.
+        // nonactivatingPanel means Hotbar is never the active app, so a local
+        // monitor receives nothing while the overlay is visible.
+        globalMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.keyDown, .keyUp]) { [weak self] event in
+            self?.handleGlobalKey(event)
         }
 
-        // Local monitor: オーバーレイ表示中のキー操作
+        // Local monitor: fallback for when Hotbar itself happens to be active
         localMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
-            return self?.handleLocalKeyEvent(event)
+            guard let self, let controller = self.overlayController, controller.isVisible else {
+                return event
+            }
+            self.handleOverlayKey(event)
+            return nil // consume
         }
     }
 
     func stop() {
-        if let monitor = globalMonitor {
-            NSEvent.removeMonitor(monitor)
-        }
-        if let monitor = localMonitor {
-            NSEvent.removeMonitor(monitor)
-        }
+        if let monitor = globalMonitor { NSEvent.removeMonitor(monitor) }
+        if let monitor = localMonitor  { NSEvent.removeMonitor(monitor) }
     }
 
-    private func handleKeyEvent(_ event: NSEvent) {
-        // ⌘+Space
-        if event.modifierFlags.contains(.command) && event.keyCode == 49 {
-            DispatchQueue.main.async {
-                self.overlayController?.toggle()
-            }
+    // MARK: - Global handler (fires for all apps)
+
+    private func handleGlobalKey(_ event: NSEvent) {
+        guard event.type == .keyDown else {
+            // keyUp: cancel long-press
+            if event.type == .keyUp { HoldKeyDetector.shared.cancel() }
+            return
         }
+
+        guard let controller = overlayController else { return }
+
+        // ⌘+Space: toggle overlay
+        if event.modifierFlags.contains(.command), event.keyCode == 49 {
+            DispatchQueue.main.async { controller.toggle() }
+            return
+        }
+
+        guard controller.isVisible else { return }
+
+        DispatchQueue.main.async { self.handleOverlayKey(event) }
     }
 
-    private func handleLocalKeyEvent(_ event: NSEvent) -> NSEvent? {
-        guard let controller = overlayController, controller.isVisible else {
-            return event
-        }
+    // MARK: - Overlay-visible key handling
 
-        // ESC で閉じる
+    private func handleOverlayKey(_ event: NSEvent) {
+        guard let controller = overlayController, controller.isVisible else { return }
+
+        // ESC → close
         if event.keyCode == 53 {
             controller.hide()
-            return nil
+            return
         }
 
-        // ⌘+Space でトグル
-        if event.modifierFlags.contains(.command) && event.keyCode == 49 {
+        // ⌘+Space → toggle
+        if event.modifierFlags.contains(.command), event.keyCode == 49 {
             controller.toggle()
-            return nil
+            return
         }
 
-        // ⌘+1〜9 でスロットジャンプ
+        // ⌘+1〜9 → jump to slot
         if event.modifierFlags.contains(.command),
            let char = event.charactersIgnoringModifiers,
-           let digit = Int(char),
-           digit >= 1 && digit <= 9 {
+           let digit = Int(char), digit >= 1, digit <= 9 {
             controller.hide()
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.08) {
                 HotbarStore.shared.activateSlot(index: digit)
             }
-            return nil
+            return
         }
 
-        // 数字長押し検出（スイッチャー表示中）
+        // 数字キー長押し → スロット登録
         if !event.modifierFlags.contains(.command),
            let char = event.charactersIgnoringModifiers,
-           let digit = Int(char),
-           digit >= 1 && digit <= 9 {
+           let digit = Int(char), digit >= 1, digit <= 9 {
             HoldKeyDetector.shared.start(digit: digit)
-            return nil
+            return
         }
-
-        return event
     }
 
-    deinit {
-        stop()
-    }
+    deinit { stop() }
 }
 
 // MARK: - Long-press detector for slot registration
@@ -93,15 +103,12 @@ final class HoldKeyDetector {
     private var timer: Timer?
     private(set) var currentDigit: Int?
     let holdDuration: TimeInterval
-
     private let store: HotbarStore
 
-    // Production init
     convenience init() {
         self.init(holdDuration: 0.5, store: .shared)
     }
 
-    // Testable init
     init(holdDuration: TimeInterval, store: HotbarStore) {
         self.holdDuration = holdDuration
         self.store = store
