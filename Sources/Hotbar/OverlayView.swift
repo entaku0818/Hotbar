@@ -25,7 +25,7 @@ struct OverlayView: View {
                         .font(.headline)
                         .foregroundStyle(.secondary)
                     Spacer()
-                    Text("ESC to close")
+                    Text("⌥Space to close")
                         .font(.caption)
                         .foregroundStyle(.tertiary)
                 }

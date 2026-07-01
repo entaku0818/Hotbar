@@ -44,8 +44,12 @@ final class HotKeyManager {
 
         guard let controller = overlayController else { return }
 
-        // ⌘+Space: toggle overlay
-        if event.modifierFlags.contains(.command), event.keyCode == 49 {
+        // ⌥+Space: toggle overlay
+        if event.modifierFlags.contains(.option),
+           !event.modifierFlags.contains(.command),
+           !event.modifierFlags.contains(.shift),
+           !event.modifierFlags.contains(.control),
+           event.keyCode == 49 {
             DispatchQueue.main.async { controller.toggle() }
             return
         }
@@ -66,8 +70,8 @@ final class HotKeyManager {
             return
         }
 
-        // ⌘+Space → toggle
-        if event.modifierFlags.contains(.command), event.keyCode == 49 {
+        // ⌥+Space → toggle
+        if event.modifierFlags.contains(.option), event.keyCode == 49 {
             controller.toggle()
             return
         }
