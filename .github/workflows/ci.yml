@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  lint:
+    name: SwiftLint
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run SwiftLint
+        run: swiftlint lint --strict
+
+  build-and-test:
+    name: Build and Test
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - name: Select Xcode
+        run: sudo xcode-select -switch /Applications/Xcode.app
+      - name: Build
+        run: |
+          xcodebuild build \
+            -project Hotbar.xcodeproj \
+            -scheme Hotbar \
+            -configuration Debug \
+            CODE_SIGNING_ALLOWED=NO
+      - name: Test
+        run: |
+          xcodebuild test \
+            -project Hotbar.xcodeproj \
+            -scheme Hotbar \
+            -configuration Debug \
+            CODE_SIGNING_ALLOWED=NO
