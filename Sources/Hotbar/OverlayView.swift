@@ -203,7 +203,12 @@ struct AccessibilityPromptView: View {
                 .buttonStyle(.bordered)
 
                 Button {
-                    HotbarStore.shared.refreshWindows()
+                    if AXIsProcessTrusted() {
+                        HotbarStore.shared.refreshWindows()
+                    } else {
+                        let opts = [kAXTrustedCheckOptionPrompt.takeRetainedValue() as String: true]
+                        AXIsProcessTrustedWithOptions(opts as CFDictionary)
+                    }
                 } label: {
                     Label("Refresh", systemImage: "arrow.clockwise")
                 }

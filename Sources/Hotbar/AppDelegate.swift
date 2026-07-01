@@ -13,7 +13,18 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         setupStatusItem()
         setupOverlay()
         setupHotKeys()
+        requestAccessibilityIfNeeded()
         showOnboardingIfNeeded()
+    }
+
+    private func requestAccessibilityIfNeeded() {
+        // Prompt the system dialog if permission is not yet granted.
+        // Using AXIsProcessTrustedWithOptions so macOS re-validates the
+        // current binary — prevents stale TCC entries after reinstall.
+        if !AXIsProcessTrusted() {
+            let opts = [kAXTrustedCheckOptionPrompt.takeRetainedValue() as String: true]
+            AXIsProcessTrustedWithOptions(opts as CFDictionary)
+        }
     }
 
     private func setupStatusItem() {
