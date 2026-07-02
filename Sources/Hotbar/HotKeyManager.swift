@@ -1,9 +1,11 @@
 import AppKit
+import CoreGraphics
 
 final class HotKeyManager {
     private weak var overlayController: OverlayWindowController?
-    private var globalMonitor: Any?
-    // Local monitor is kept only as a safety net; real work happens in global monitor
+    private var eventTap: CFMachPort?
+    private var runLoopSource: CFRunLoopSource?
+    // Local monitor as safety net when Hotbar is active
     private var localMonitor: Any?
 
     init(overlayController: OverlayWindowController) {
@@ -11,75 +13,154 @@ final class HotKeyManager {
     }
 
     func start() {
-        // Global monitor handles ALL key events — including overlay interactions.
-        // nonactivatingPanel means Hotbar is never the active app, so a local
-        // monitor receives nothing while the overlay is visible.
-        globalMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.keyDown, .keyUp]) { [weak self] event in
-            self?.handleGlobalKey(event)
-        }
+        startCGEventTap()
 
-        // Local monitor: fallback for when Hotbar itself happens to be active
         localMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
             guard let self, let controller = self.overlayController, controller.isVisible else {
                 return event
             }
-            self.handleOverlayKey(event)
-            return nil // consume
+            self.handleOverlayKey(keyCode: event.keyCode, flags: event.modifierFlags)
+            return nil
         }
     }
 
     func stop() {
-        if let monitor = globalMonitor { NSEvent.removeMonitor(monitor) }
-        if let monitor = localMonitor  { NSEvent.removeMonitor(monitor) }
+        if let tap = eventTap {
+            CGEvent.tapEnable(tap: tap, enable: false)
+        }
+        if let src = runLoopSource {
+            CFRunLoopRemoveSource(CFRunLoopGetMain(), src, .commonModes)
+        }
+        eventTap = nil
+        runLoopSource = nil
+        if let monitor = localMonitor { NSEvent.removeMonitor(monitor) }
+        localMonitor = nil
     }
 
-    // MARK: - Global handler (fires for all apps)
+    // MARK: - CGEventTap
 
-    private func handleGlobalKey(_ event: NSEvent) {
-        guard event.type == .keyDown else {
-            // keyUp: cancel long-press
-            if event.type == .keyUp { HoldKeyDetector.shared.cancel() }
+    private func startCGEventTap() {
+        let mask: CGEventMask = (1 << CGEventType.keyDown.rawValue) | (1 << CGEventType.keyUp.rawValue)
+
+        let selfPtr = Unmanaged.passRetained(self).toOpaque()
+
+        guard let tap = CGEvent.tapCreate(
+            tap: .cgSessionEventTap,
+            place: .headInsertEventTap,
+            options: .defaultTap,
+            eventsOfInterest: mask,
+            callback: { proxy, type, event, userInfo -> Unmanaged<CGEvent>? in
+                guard let userInfo else { return Unmanaged.passRetained(event) }
+                let manager = Unmanaged<HotKeyManager>.fromOpaque(userInfo).takeUnretainedValue()
+                return manager.handleCGEvent(proxy: proxy, type: type, event: event)
+            },
+            userInfo: selfPtr
+        ) else {
+            // CGEventTap creation failed (no Accessibility permission yet)
+            // Fall back to NSEvent global monitor
+            startNSEventMonitor()
             return
         }
 
-        guard let controller = overlayController else { return }
+        let src = CFMachPortCreateRunLoopSource(kCFAllocatorDefault, tap, 0)
+        CFRunLoopAddSource(CFRunLoopGetMain(), src, .commonModes)
+        CGEvent.tapEnable(tap: tap, enable: true)
 
-        // ⌥+Space: toggle overlay
-        if event.modifierFlags.contains(.option),
-           !event.modifierFlags.contains(.command),
-           !event.modifierFlags.contains(.shift),
-           !event.modifierFlags.contains(.control),
-           event.keyCode == 49 {
-            DispatchQueue.main.async { controller.toggle() }
-            return
-        }
-
-        guard controller.isVisible else { return }
-
-        DispatchQueue.main.async { self.handleOverlayKey(event) }
+        self.eventTap = tap
+        self.runLoopSource = src
     }
 
-    // MARK: - Overlay-visible key handling
+    private func handleCGEvent(proxy: CGEventTapProxy, type: CGEventType, event: CGEvent) -> Unmanaged<CGEvent>? {
+        guard type == .keyDown || type == .keyUp else {
+            return Unmanaged.passRetained(event)
+        }
 
-    private func handleOverlayKey(_ event: NSEvent) {
+        let keyCode = event.getIntegerValueField(.keyboardEventKeycode)
+        let flags = event.flags
+
+        let isOption  = flags.contains(.maskAlternate)
+        let isCommand = flags.contains(.maskCommand)
+        let isShift   = flags.contains(.maskShift)
+        let isControl = flags.contains(.maskControl)
+        let isSpace   = keyCode == 49
+
+        // ⌥+Space: toggle overlay (no other modifiers)
+        if type == .keyDown, isOption, isSpace, !isCommand, !isShift, !isControl {
+            DispatchQueue.main.async { self.overlayController?.toggle() }
+            return nil // consume — don't pass to other apps
+        }
+
+        // keyUp: cancel long-press
+        if type == .keyUp {
+            DispatchQueue.main.async { HoldKeyDetector.shared.cancel() }
+            return Unmanaged.passRetained(event)
+        }
+
+        // Below: only active when overlay is visible
+        guard overlayController?.isVisible == true else {
+            return Unmanaged.passRetained(event)
+        }
+
+        // ESC
+        if keyCode == 53 {
+            DispatchQueue.main.async { self.overlayController?.hide() }
+            return nil
+        }
+
+        // ⌘+1〜9 → slot jump
+        if flags.contains(.maskCommand), !isOption, keyCode >= 18, keyCode <= 26 {
+            // keyCodes 18-26 = 1-9 on main keyboard
+            let digit = Int(keyCode) - 17
+            DispatchQueue.main.async {
+                self.overlayController?.hide()
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.08) {
+                    HotbarStore.shared.activateSlot(index: digit)
+                }
+            }
+            return nil
+        }
+
+        // 数字長押し → スロット登録
+        if !flags.contains(.maskCommand), keyCode >= 18, keyCode <= 26 {
+            let digit = Int(keyCode) - 17
+            DispatchQueue.main.async { HoldKeyDetector.shared.start(digit: digit) }
+            return nil
+        }
+
+        return Unmanaged.passRetained(event)
+    }
+
+    // MARK: - NSEvent fallback (when CGEventTap unavailable)
+
+    private var nsGlobalMonitor: Any?
+
+    private func startNSEventMonitor() {
+        nsGlobalMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.keyDown, .keyUp]) { [weak self] event in
+            guard let self else { return }
+            if event.type == .keyUp { HoldKeyDetector.shared.cancel(); return }
+            let isOption  = event.modifierFlags.contains(.option)
+            let isCommand = event.modifierFlags.contains(.command)
+            let isSpace   = event.keyCode == 49
+            if isOption, isSpace, !isCommand {
+                DispatchQueue.main.async { self.overlayController?.toggle() }
+                return
+            }
+            guard self.overlayController?.isVisible == true else { return }
+            DispatchQueue.main.async { self.handleOverlayKey(keyCode: event.keyCode, flags: event.modifierFlags) }
+        }
+    }
+
+    // MARK: - Shared overlay key logic
+
+    func handleOverlayKey(keyCode: UInt16, flags: NSEvent.ModifierFlags) {
         guard let controller = overlayController, controller.isVisible else { return }
 
-        // ESC → close
-        if event.keyCode == 53 {
-            controller.hide()
-            return
-        }
+        if keyCode == 53 { controller.hide(); return }
 
-        // ⌥+Space → toggle
-        if event.modifierFlags.contains(.option), event.keyCode == 49 {
-            controller.toggle()
-            return
-        }
+        if flags.contains(.option), keyCode == 49 { controller.toggle(); return }
 
-        // ⌘+1〜9 → jump to slot
-        if event.modifierFlags.contains(.command),
-           let char = event.charactersIgnoringModifiers,
-           let digit = Int(char), digit >= 1, digit <= 9 {
+        if flags.contains(.command), keyCode >= 18, keyCode <= 26 {
+            let digit = Int(keyCode) - 17
             controller.hide()
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.08) {
                 HotbarStore.shared.activateSlot(index: digit)
@@ -87,19 +168,15 @@ final class HotKeyManager {
             return
         }
 
-        // 数字キー長押し → スロット登録
-        if !event.modifierFlags.contains(.command),
-           let char = event.charactersIgnoringModifiers,
-           let digit = Int(char), digit >= 1, digit <= 9 {
-            HoldKeyDetector.shared.start(digit: digit)
-            return
+        if !flags.contains(.command), keyCode >= 18, keyCode <= 26 {
+            HoldKeyDetector.shared.start(digit: Int(keyCode) - 17)
         }
     }
 
     deinit { stop() }
 }
 
-// MARK: - Long-press detector for slot registration
+// MARK: - Long-press detector
 
 final class HoldKeyDetector {
     static let shared = HoldKeyDetector()
@@ -109,9 +186,7 @@ final class HoldKeyDetector {
     let holdDuration: TimeInterval
     private let store: HotbarStore
 
-    convenience init() {
-        self.init(holdDuration: 0.5, store: .shared)
-    }
+    convenience init() { self.init(holdDuration: 0.5, store: .shared) }
 
     init(holdDuration: TimeInterval, store: HotbarStore) {
         self.holdDuration = holdDuration
@@ -135,12 +210,9 @@ final class HoldKeyDetector {
 
     func triggerRegister() {
         guard let digit = currentDigit else { return }
-        guard store.windows.indices.contains(store.selectedIndex) else {
-            cancel()
-            return
-        }
-        let selectedWindow = store.windows[store.selectedIndex]
-        store.assignSlot(index: digit, windowInfo: selectedWindow)
+        guard store.windows.indices.contains(store.selectedIndex) else { cancel(); return }
+        let window = store.windows[store.selectedIndex]
+        store.assignSlot(index: digit, windowInfo: window)
         NotificationCenter.default.post(name: .hotbarSlotAssigned, object: digit)
         cancel()
     }
