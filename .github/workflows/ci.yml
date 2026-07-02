@@ -9,19 +9,21 @@ on:
 jobs:
   lint:
     name: SwiftLint
-    runs-on: macos-14
+    # macos-15 runner images no longer preinstall SwiftLint
+    runs-on: macos-15
     steps:
       - uses: actions/checkout@v4
+      - name: Install SwiftLint
+        run: brew install swiftlint
       - name: Run SwiftLint
         run: swiftlint lint --strict
 
   build-and-test:
     name: Build and Test
-    runs-on: macos-14
+    # project.pbxproj is objectVersion 77, which requires Xcode 16+
+    runs-on: macos-15
     steps:
       - uses: actions/checkout@v4
-      - name: Select Xcode
-        run: sudo xcode-select -switch /Applications/Xcode.app
       - name: Build
         run: |
           xcodebuild build \

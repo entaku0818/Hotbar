@@ -38,6 +38,9 @@ targets:
       properties:
         com.apple.security.app-sandbox: false
         com.apple.security.automation.apple-events: true
+    scheme:
+      testTargets:
+        - HotbarTests
 
   HotbarTests:
     type: bundle.unit-test
