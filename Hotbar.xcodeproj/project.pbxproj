@@ -14,9 +14,11 @@
 		19CF7B4965B37E0C006C3B71 /* OverlayWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B74A331CD8B6B69AD90A3EF2 /* OverlayWindowController.swift */; };
 		24D00CCBABACB3B3BA4410D2 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 6571C4CA6B38676448ACE3E3 /* Assets.xcassets */; };
 		4BE288AFB063EB1B95B34B90 /* HotbarApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = DAE0060020A099E7B3786D4A /* HotbarApp.swift */; };
+		6DA7A70ACA3B923CC1D93F6F /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F726BE29BF0DC560A749403 /* SettingsView.swift */; };
 		A7A9575F74F6B404AC4DC201 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4DC47A9345BC01A6499FEB1 /* AppDelegate.swift */; };
 		ABC1A1036E996B0B8279AFA5 /* OverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B61397C5AFE82048B3E3A553 /* OverlayView.swift */; };
 		E2A8EBDF5D9A523123417FDB /* HotKeyManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C504CA4B7DCC02EC6AB6313E /* HotKeyManager.swift */; };
+		E9D6F2F759CB736508F016BE /* HotkeyPreference.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A27C8195A439F37E688FA04 /* HotkeyPreference.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -33,9 +35,11 @@
 		0775AF6317B784BE164245B6 /* Hotbar.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Hotbar.entitlements; sourceTree = "<group>"; };
 		0ACFE9F19048F82EB7BF58BD /* WindowInfoTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowInfoTests.swift; sourceTree = "<group>"; };
 		3917B0EAC9AC657A20EA1B06 /* WindowInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowInfo.swift; sourceTree = "<group>"; };
+		3A27C8195A439F37E688FA04 /* HotkeyPreference.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotkeyPreference.swift; sourceTree = "<group>"; };
 		4043786DCD7C08A378648EDB /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		599BB33146DC51BA58085A55 /* HotbarStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotbarStore.swift; sourceTree = "<group>"; };
 		6571C4CA6B38676448ACE3E3 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		9F726BE29BF0DC560A749403 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		A0E6D53A22A2A2681210878C /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		AE4F9142FBC3C7C38AD90133 /* HotbarTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = HotbarTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		B61397C5AFE82048B3E3A553 /* OverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverlayView.swift; sourceTree = "<group>"; };
@@ -56,10 +60,12 @@
 				DAE0060020A099E7B3786D4A /* HotbarApp.swift */,
 				599BB33146DC51BA58085A55 /* HotbarStore.swift */,
 				C504CA4B7DCC02EC6AB6313E /* HotKeyManager.swift */,
+				3A27C8195A439F37E688FA04 /* HotkeyPreference.swift */,
 				4043786DCD7C08A378648EDB /* Info.plist */,
 				A0E6D53A22A2A2681210878C /* OnboardingView.swift */,
 				B61397C5AFE82048B3E3A553 /* OverlayView.swift */,
 				B74A331CD8B6B69AD90A3EF2 /* OverlayWindowController.swift */,
+				9F726BE29BF0DC560A749403 /* SettingsView.swift */,
 				3917B0EAC9AC657A20EA1B06 /* WindowInfo.swift */,
 			);
 			name = Hotbar;
@@ -189,9 +195,11 @@
 				E2A8EBDF5D9A523123417FDB /* HotKeyManager.swift in Sources */,
 				4BE288AFB063EB1B95B34B90 /* HotbarApp.swift in Sources */,
 				14FD789DB2C56FBBC913525F /* HotbarStore.swift in Sources */,
+				E9D6F2F759CB736508F016BE /* HotkeyPreference.swift in Sources */,
 				0A39EDE3C09052A070B5808D /* OnboardingView.swift in Sources */,
 				ABC1A1036E996B0B8279AFA5 /* OverlayView.swift in Sources */,
 				19CF7B4965B37E0C006C3B71 /* OverlayWindowController.swift in Sources */,
+				6DA7A70ACA3B923CC1D93F6F /* SettingsView.swift in Sources */,
 				0A09240E19DCB246AC8710BB /* WindowInfo.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

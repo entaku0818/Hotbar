@@ -25,7 +25,7 @@ struct OverlayView: View {
                         .font(.headline)
                         .foregroundStyle(.secondary)
                     Spacer()
-                    Text("⌥Space to close")
+                    Text("\(HotkeyPreference.load().displayString) or ESC to close")
                         .font(.caption)
                         .foregroundStyle(.tertiary)
                 }

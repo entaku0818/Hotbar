@@ -7,9 +7,24 @@ final class HotKeyManager {
     private var runLoopSource: CFRunLoopSource?
     // Local monitor as safety net when Hotbar is active
     private var localMonitor: Any?
+    private var nsGlobalMonitor: Any?
+
+    private var hotkey = HotkeyPreference.load()
+
+    var isTapActive: Bool { eventTap != nil }
 
     init(overlayController: OverlayWindowController) {
         self.overlayController = overlayController
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(hotkeyChanged),
+            name: .hotkeyPreferenceChanged,
+            object: nil
+        )
+    }
+
+    @objc private func hotkeyChanged() {
+        hotkey = HotkeyPreference.load()
     }
 
     func start() {
@@ -24,6 +39,16 @@ final class HotKeyManager {
         }
     }
 
+    /// Retry CGEventTap creation — call after accessibility permission is granted.
+    func restartTapIfNeeded() {
+        guard eventTap == nil, AXIsProcessTrusted() else { return }
+        if let monitor = nsGlobalMonitor {
+            NSEvent.removeMonitor(monitor)
+            nsGlobalMonitor = nil
+        }
+        startCGEventTap()
+    }
+
     func stop() {
         if let tap = eventTap {
             CGEvent.tapEnable(tap: tap, enable: false)
@@ -35,6 +60,8 @@ final class HotKeyManager {
         runLoopSource = nil
         if let monitor = localMonitor { NSEvent.removeMonitor(monitor) }
         localMonitor = nil
+        if let monitor = nsGlobalMonitor { NSEvent.removeMonitor(monitor) }
+        nsGlobalMonitor = nil
     }
 
     // MARK: - CGEventTap
@@ -42,7 +69,7 @@ final class HotKeyManager {
     private func startCGEventTap() {
         let mask: CGEventMask = (1 << CGEventType.keyDown.rawValue) | (1 << CGEventType.keyUp.rawValue)
 
-        let selfPtr = Unmanaged.passRetained(self).toOpaque()
+        let selfPtr = Unmanaged.passUnretained(self).toOpaque()
 
         guard let tap = CGEvent.tapCreate(
             tap: .cgSessionEventTap,
@@ -56,8 +83,7 @@ final class HotKeyManager {
             },
             userInfo: selfPtr
         ) else {
-            // CGEventTap creation failed (no Accessibility permission yet)
-            // Fall back to NSEvent global monitor
+            NSLog("[Hotbar] CGEventTap creation FAILED (accessibility not granted?) — falling back to NSEvent monitor")
             startNSEventMonitor()
             return
         }
@@ -68,9 +94,16 @@ final class HotKeyManager {
 
         self.eventTap = tap
         self.runLoopSource = src
+        NSLog("[Hotbar] CGEventTap active")
     }
 
     private func handleCGEvent(proxy: CGEventTapProxy, type: CGEventType, event: CGEvent) -> Unmanaged<CGEvent>? {
+        // Re-enable tap if the system disabled it (timeout / user input flood)
+        if type == .tapDisabledByTimeout || type == .tapDisabledByUserInput {
+            if let tap = eventTap { CGEvent.tapEnable(tap: tap, enable: true) }
+            return Unmanaged.passRetained(event)
+        }
+
         guard type == .keyDown || type == .keyUp else {
             return Unmanaged.passRetained(event)
         }
@@ -78,14 +111,8 @@ final class HotKeyManager {
         let keyCode = event.getIntegerValueField(.keyboardEventKeycode)
         let flags = event.flags
 
-        let isOption  = flags.contains(.maskAlternate)
-        let isCommand = flags.contains(.maskCommand)
-        let isShift   = flags.contains(.maskShift)
-        let isControl = flags.contains(.maskControl)
-        let isSpace   = keyCode == 49
-
-        // ⌥+Space: toggle overlay (no other modifiers)
-        if type == .keyDown, isOption, isSpace, !isCommand, !isShift, !isControl {
+        // Toggle hotkey (user-configurable, default ⌥Space)
+        if type == .keyDown, hotkey.matches(keyCode: keyCode, cgFlags: flags) {
             DispatchQueue.main.async { self.overlayController?.toggle() }
             return nil // consume — don't pass to other apps
         }
@@ -107,9 +134,8 @@ final class HotKeyManager {
             return nil
         }
 
-        // ⌘+1〜9 → slot jump
-        if flags.contains(.maskCommand), !isOption, keyCode >= 18, keyCode <= 26 {
-            // keyCodes 18-26 = 1-9 on main keyboard
+        // ⌘+1〜9 → slot jump (keyCodes 18-26 = 1-9 on main keyboard)
+        if flags.contains(.maskCommand), keyCode >= 18, keyCode <= 26 {
             let digit = Int(keyCode) - 17
             DispatchQueue.main.async {
                 self.overlayController?.hide()
@@ -132,16 +158,11 @@ final class HotKeyManager {
 
     // MARK: - NSEvent fallback (when CGEventTap unavailable)
 
-    private var nsGlobalMonitor: Any?
-
     private func startNSEventMonitor() {
         nsGlobalMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.keyDown, .keyUp]) { [weak self] event in
             guard let self else { return }
             if event.type == .keyUp { HoldKeyDetector.shared.cancel(); return }
-            let isOption  = event.modifierFlags.contains(.option)
-            let isCommand = event.modifierFlags.contains(.command)
-            let isSpace   = event.keyCode == 49
-            if isOption, isSpace, !isCommand {
+            if self.hotkey.matches(event: event) {
                 DispatchQueue.main.async { self.overlayController?.toggle() }
                 return
             }
@@ -157,7 +178,10 @@ final class HotKeyManager {
 
         if keyCode == 53 { controller.hide(); return }
 
-        if flags.contains(.option), keyCode == 49 { controller.toggle(); return }
+        if hotkey.matches(keyCode: Int64(keyCode), cgFlags: Self.cgFlags(from: flags)) {
+            controller.toggle()
+            return
+        }
 
         if flags.contains(.command), keyCode >= 18, keyCode <= 26 {
             let digit = Int(keyCode) - 17
@@ -173,7 +197,19 @@ final class HotKeyManager {
         }
     }
 
-    deinit { stop() }
+    private static func cgFlags(from flags: NSEvent.ModifierFlags) -> CGEventFlags {
+        var cg = CGEventFlags()
+        if flags.contains(.option) { cg.insert(.maskAlternate) }
+        if flags.contains(.command) { cg.insert(.maskCommand) }
+        if flags.contains(.shift) { cg.insert(.maskShift) }
+        if flags.contains(.control) { cg.insert(.maskControl) }
+        return cg
+    }
+
+    deinit {
+        NotificationCenter.default.removeObserver(self)
+        stop()
+    }
 }
 
 // MARK: - Long-press detector
