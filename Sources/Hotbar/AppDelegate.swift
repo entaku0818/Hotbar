@@ -17,16 +17,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         setupOverlay()
         setupHotKeys()
         requestAccessibilityIfNeeded()
-        requestScreenRecordingIfNeeded()
         showOnboardingIfNeeded()
-    }
-
-    private func requestScreenRecordingIfNeeded() {
-        // Screen Recording permission enables window thumbnails and real
-        // window titles. Without it the switcher still works with app icons.
-        if !CGPreflightScreenCaptureAccess() {
-            CGRequestScreenCaptureAccess()
-        }
     }
 
     private func requestAccessibilityIfNeeded() {

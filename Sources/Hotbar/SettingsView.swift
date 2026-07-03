@@ -7,6 +7,7 @@ struct SettingsView: View {
     @State private var isRecording = false
     @State private var launchAtLogin = (SMAppService.mainApp.status == .enabled)
     @State private var recorderMonitor: Any?
+    @State private var screenRecordingGranted = CGPreflightScreenCaptureAccess()
 
     var body: some View {
         Form {
@@ -37,6 +38,22 @@ struct SettingsView: View {
             }
 
             Section {
+                if screenRecordingGranted {
+                    Label("Window previews enabled", systemImage: "checkmark.circle.fill")
+                        .foregroundStyle(.green)
+                } else {
+                    Text("Optional: window previews (thumbnails) and exact window titles need Screen Recording permission. Without it, app icons are shown.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    Button("Enable window previews…") {
+                        CGRequestScreenCaptureAccess()
+                    }
+                }
+            } header: {
+                Text("Window Previews")
+            }
+
+            Section {
                 Toggle("Launch Hotbar at login", isOn: $launchAtLogin)
                     .onChange(of: launchAtLogin) { enabled in
                         do {
@@ -55,8 +72,11 @@ struct SettingsView: View {
             }
         }
         .formStyle(.grouped)
-        .frame(width: 420, height: 260)
+        .frame(width: 420, height: 400)
         .onDisappear { stopRecording() }
+        .onReceive(Timer.publish(every: 1, on: .main, in: .common).autoconnect()) { _ in
+            screenRecordingGranted = CGPreflightScreenCaptureAccess()
+        }
     }
 
     private func startRecording() {

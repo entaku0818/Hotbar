@@ -32,13 +32,18 @@ struct OverlayView: View {
                 .padding(.horizontal, 20)
                 .padding(.top, 16)
 
-                // Window grid (upper section)
+                // Window grid (upper section) — listing works without any permission
                 WindowGridView(
                     windows: store.windows,
-                    selectedIndex: $store.selectedIndex,
-                    isAccessibilityGranted: isAccessibilityGranted
+                    selectedIndex: $store.selectedIndex
                 )
                 .frame(maxHeight: 380)
+
+                // Non-blocking hint when accessibility is missing
+                if !isAccessibilityGranted {
+                    AccessibilityHintBanner()
+                        .padding(.horizontal, 20)
+                }
 
                 Divider()
                     .padding(.horizontal, 20)
@@ -77,7 +82,6 @@ struct OverlayView: View {
 struct WindowGridView: View {
     let windows: [WindowInfo]
     @Binding var selectedIndex: Int
-    let isAccessibilityGranted: Bool
 
     private let columns = [
         GridItem(.adaptive(minimum: 160, maximum: 200), spacing: 12)
@@ -85,10 +89,7 @@ struct WindowGridView: View {
 
     var body: some View {
         ScrollView {
-            if !isAccessibilityGranted {
-                AccessibilityPromptView()
-                    .frame(maxWidth: .infinity, minHeight: 200)
-            } else if windows.isEmpty {
+            if windows.isEmpty {
                 VStack(spacing: 12) {
                     Image(systemName: "rectangle.on.rectangle.slash")
                         .font(.system(size: 40))
@@ -183,41 +184,26 @@ struct WindowCell: View {
 
 // MARK: - Accessibility prompt
 
-struct AccessibilityPromptView: View {
+struct AccessibilityHintBanner: View {
     var body: some View {
-        VStack(spacing: 16) {
-            Image(systemName: "lock.shield")
-                .font(.system(size: 40))
+        HStack(spacing: 8) {
+            Image(systemName: "exclamationmark.triangle.fill")
                 .foregroundStyle(.orange)
-            Text("Accessibility Access Required")
-                .font(.headline)
-                .foregroundStyle(.primary)
-            Text("Grant access in System Settings, then click Refresh.")
+            Text("Accessibility is off — hotkeys and per-window switching may not work.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
-                .frame(maxWidth: 300)
-            HStack(spacing: 10) {
-                Button("Open System Settings") {
-                    if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility") {
-                        NSWorkspace.shared.open(url)
-                    }
+            Spacer()
+            Button("Open System Settings") {
+                if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility") {
+                    NSWorkspace.shared.open(url)
                 }
-                .buttonStyle(.bordered)
-
-                Button {
-                    if AXIsProcessTrusted() {
-                        HotbarStore.shared.refreshWindows()
-                    } else {
-                        let opts = [kAXTrustedCheckOptionPrompt.takeRetainedValue() as String: true]
-                        AXIsProcessTrustedWithOptions(opts as CFDictionary)
-                    }
-                } label: {
-                    Label("Refresh", systemImage: "arrow.clockwise")
-                }
-                .buttonStyle(.borderedProminent)
             }
+            .buttonStyle(.bordered)
+            .controlSize(.small)
         }
+        .padding(.vertical, 6)
+        .padding(.horizontal, 10)
+        .background(RoundedRectangle(cornerRadius: 8).fill(Color.orange.opacity(0.12)))
     }
 }
 
