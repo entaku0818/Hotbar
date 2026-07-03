@@ -19,7 +19,7 @@ final class OverlayWindowController: NSObject {
             backing: .buffered,
             defer: false
         )
-        panel.level = .floating
+        panel.level = .popUpMenu
         panel.isOpaque = false
         panel.backgroundColor = .clear
         panel.hasShadow = true

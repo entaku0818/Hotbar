@@ -22,8 +22,8 @@ struct OnboardingView: View {
         ),
         OnboardingStep(
             icon: "keyboard",
-            title: "Open with ⌥+Space",
-            description: "Press ⌥+Space (Option+Space) at any time to open the Hotbar overlay, even while using other apps.",
+            title: "Open with ⌥+Tab",
+            description: "Press ⌥+Tab (Option+Tab) at any time to open the Hotbar overlay, even while using other apps. You can change this in Settings.",
             action: nil
         ),
         OnboardingStep(

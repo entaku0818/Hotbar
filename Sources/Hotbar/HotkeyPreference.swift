@@ -9,7 +9,8 @@ struct HotkeyPreference: Codable, Equatable {
     var shift: Bool
     var control: Bool
 
-    static let `default` = HotkeyPreference(keyCode: 49, option: true, command: false, shift: false, control: false)
+    // ⌥Tab — Alt+Tab-style default; ⌥Space commonly collides with Raycast/Spotlight/Alfred
+    static let `default` = HotkeyPreference(keyCode: 48, option: true, command: false, shift: false, control: false)
 
     private static let defaultsKey = "toggleHotkey"
 

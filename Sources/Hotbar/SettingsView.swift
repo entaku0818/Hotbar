@@ -27,7 +27,7 @@ struct SettingsView: View {
                 Text("Click, then press a new shortcut. At least one modifier (⌘⌥⇧⌃) is required.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
-                Button("Reset to ⌥Space") {
+                Button("Reset to default (⌥⇥)") {
                     hotkey = .default
                     hotkey.save()
                 }
