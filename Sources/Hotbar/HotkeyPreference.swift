@@ -39,6 +39,23 @@ struct HotkeyPreference: Codable, Equatable {
             && cgFlags.contains(.maskControl) == control
     }
 
+    /// Match tolerating Shift — Shift+hotkey cycles backwards (AltTab-style).
+    func matchesIgnoringShift(keyCode: Int64, cgFlags: CGEventFlags) -> Bool {
+        guard keyCode == Int64(self.keyCode) else { return false }
+        return cgFlags.contains(.maskAlternate) == option
+            && cgFlags.contains(.maskCommand) == command
+            && cgFlags.contains(.maskControl) == control
+    }
+
+    /// True while every modifier required by this hotkey is still held.
+    func modifiersStillHeld(cgFlags: CGEventFlags) -> Bool {
+        if option, !cgFlags.contains(.maskAlternate) { return false }
+        if command, !cgFlags.contains(.maskCommand) { return false }
+        if shift, !cgFlags.contains(.maskShift) { return false }
+        if control, !cgFlags.contains(.maskControl) { return false }
+        return true
+    }
+
     func matches(event: NSEvent) -> Bool {
         guard event.keyCode == keyCode else { return false }
         let flags = event.modifierFlags

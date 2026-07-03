@@ -67,7 +67,9 @@ final class HotKeyManager {
     // MARK: - CGEventTap
 
     private func startCGEventTap() {
-        let mask: CGEventMask = (1 << CGEventType.keyDown.rawValue) | (1 << CGEventType.keyUp.rawValue)
+        let mask: CGEventMask = (1 << CGEventType.keyDown.rawValue)
+            | (1 << CGEventType.keyUp.rawValue)
+            | (1 << CGEventType.flagsChanged.rawValue)
 
         let selfPtr = Unmanaged.passUnretained(self).toOpaque()
 
@@ -104,16 +106,39 @@ final class HotKeyManager {
             return Unmanaged.passRetained(event)
         }
 
+        let keyCode = event.getIntegerValueField(.keyboardEventKeycode)
+        let flags = event.flags
+
+        // Hold mode: releasing the hotkey's modifier activates the selection
+        if type == .flagsChanged {
+            if AppSettings.shared.holdMode,
+               overlayController?.isVisible == true,
+               hotkey.hasModifier,
+               !hotkey.modifiersStillHeld(cgFlags: flags) {
+                DispatchQueue.main.async { HotbarStore.shared.activateSelectedWindow() }
+            }
+            return Unmanaged.passRetained(event)
+        }
+
         guard type == .keyDown || type == .keyUp else {
             return Unmanaged.passRetained(event)
         }
 
-        let keyCode = event.getIntegerValueField(.keyboardEventKeycode)
-        let flags = event.flags
-
-        // Toggle hotkey (user-configurable, default ⌥Space)
-        if type == .keyDown, hotkey.matches(keyCode: keyCode, cgFlags: flags) {
-            DispatchQueue.main.async { self.overlayController?.toggle() }
+        // Hotkey (user-configurable, default ⌥Tab). Shift reverses direction.
+        if type == .keyDown, hotkey.matchesIgnoringShift(keyCode: keyCode, cgFlags: flags) {
+            let reverse = flags.contains(.maskShift) && !hotkey.shift
+            DispatchQueue.main.async {
+                guard let controller = self.overlayController else { return }
+                if controller.isVisible {
+                    if AppSettings.shared.holdMode {
+                        HotbarStore.shared.cycleSelection(forward: !reverse)
+                    } else {
+                        controller.toggle()
+                    }
+                } else {
+                    controller.show()
+                }
+            }
             return nil // consume — don't pass to other apps
         }
 
@@ -131,6 +156,20 @@ final class HotKeyManager {
         // ESC
         if keyCode == 53 {
             DispatchQueue.main.async { self.overlayController?.hide() }
+            return nil
+        }
+
+        // Arrow keys → move selection, Return → activate
+        if keyCode == 123 || keyCode == 126 { // ← ↑
+            DispatchQueue.main.async { HotbarStore.shared.cycleSelection(forward: false) }
+            return nil
+        }
+        if keyCode == 124 || keyCode == 125 { // → ↓
+            DispatchQueue.main.async { HotbarStore.shared.cycleSelection(forward: true) }
+            return nil
+        }
+        if keyCode == 36 { // Return
+            DispatchQueue.main.async { HotbarStore.shared.activateSelectedWindow() }
             return nil
         }
 
@@ -159,11 +198,32 @@ final class HotKeyManager {
     // MARK: - NSEvent fallback (when CGEventTap unavailable)
 
     private func startNSEventMonitor() {
-        nsGlobalMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.keyDown, .keyUp]) { [weak self] event in
+        nsGlobalMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.keyDown, .keyUp, .flagsChanged]) { [weak self] event in
             guard let self else { return }
+            if event.type == .flagsChanged {
+                if AppSettings.shared.holdMode,
+                   self.overlayController?.isVisible == true,
+                   self.hotkey.hasModifier,
+                   !self.hotkey.modifiersStillHeld(cgFlags: Self.cgFlags(from: event.modifierFlags)) {
+                    DispatchQueue.main.async { HotbarStore.shared.activateSelectedWindow() }
+                }
+                return
+            }
             if event.type == .keyUp { HoldKeyDetector.shared.cancel(); return }
-            if self.hotkey.matches(event: event) {
-                DispatchQueue.main.async { self.overlayController?.toggle() }
+            if self.hotkey.matchesIgnoringShift(keyCode: Int64(event.keyCode), cgFlags: Self.cgFlags(from: event.modifierFlags)) {
+                let reverse = event.modifierFlags.contains(.shift) && !self.hotkey.shift
+                DispatchQueue.main.async {
+                    guard let controller = self.overlayController else { return }
+                    if controller.isVisible {
+                        if AppSettings.shared.holdMode {
+                            HotbarStore.shared.cycleSelection(forward: !reverse)
+                        } else {
+                            controller.toggle()
+                        }
+                    } else {
+                        controller.show()
+                    }
+                }
                 return
             }
             guard self.overlayController?.isVisible == true else { return }
@@ -178,10 +238,18 @@ final class HotKeyManager {
 
         if keyCode == 53 { controller.hide(); return }
 
-        if hotkey.matches(keyCode: Int64(keyCode), cgFlags: Self.cgFlags(from: flags)) {
-            controller.toggle()
+        if hotkey.matchesIgnoringShift(keyCode: Int64(keyCode), cgFlags: Self.cgFlags(from: flags)) {
+            if AppSettings.shared.holdMode {
+                HotbarStore.shared.cycleSelection(forward: !flags.contains(.shift) || hotkey.shift)
+            } else {
+                controller.toggle()
+            }
             return
         }
+
+        if keyCode == 123 || keyCode == 126 { HotbarStore.shared.cycleSelection(forward: false); return }
+        if keyCode == 124 || keyCode == 125 { HotbarStore.shared.cycleSelection(forward: true); return }
+        if keyCode == 36 { HotbarStore.shared.activateSelectedWindow(); return }
 
         if flags.contains(.command), keyCode >= 18, keyCode <= 26 {
             let digit = Int(keyCode) - 17

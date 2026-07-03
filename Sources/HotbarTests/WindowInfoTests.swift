@@ -146,6 +146,44 @@ final class HotbarStoreTests: XCTestCase {
         XCTAssertTrue(store.slots.isEmpty)
     }
 
+    // MARK: - Exclusion filter
+
+    func testApplyExclusionsFiltersByAppName() {
+        let windows = [
+            makeWindow(id: 1, appName: "Safari"),
+            makeWindow(id: 2, appName: "Xcode"),
+            makeWindow(id: 3, appName: "Safari")
+        ]
+        let filtered = HotbarStore.applyExclusions(windows, excluded: ["Safari"])
+        XCTAssertEqual(filtered.map(\.id), [2])
+    }
+
+    func testApplyExclusionsEmptySetKeepsAll() {
+        let windows = [makeWindow(id: 1), makeWindow(id: 2)]
+        XCTAssertEqual(HotbarStore.applyExclusions(windows, excluded: []).count, 2)
+    }
+
+    // MARK: - Selection cycling
+
+    func testCycleSelectionWrapsForward() {
+        store.windows = [makeWindow(id: 1), makeWindow(id: 2), makeWindow(id: 3)]
+        store.selectedIndex = 2
+        store.cycleSelection(forward: true)
+        XCTAssertEqual(store.selectedIndex, 0)
+    }
+
+    func testCycleSelectionWrapsBackward() {
+        store.windows = [makeWindow(id: 1), makeWindow(id: 2), makeWindow(id: 3)]
+        store.selectedIndex = 0
+        store.cycleSelection(forward: false)
+        XCTAssertEqual(store.selectedIndex, 2)
+    }
+
+    func testCycleSelectionEmptyWindowsIsSafe() {
+        store.cycleSelection(forward: true)
+        XCTAssertEqual(store.selectedIndex, 0)
+    }
+
     // MARK: - selectedIndex
 
     func testSelectedIndexDefaultsToZero() {

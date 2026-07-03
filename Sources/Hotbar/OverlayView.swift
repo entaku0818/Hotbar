@@ -3,8 +3,15 @@ import AppKit
 
 struct OverlayView: View {
     @EnvironmentObject var store: HotbarStore
+    @ObservedObject private var settings = AppSettings.shared
     @State private var slotAssigned: Int?
     @State private var isAccessibilityGranted = AXIsProcessTrusted()
+
+    private var closeHint: String {
+        settings.holdMode
+            ? "Release modifier to switch · ESC to cancel"
+            : "\(HotkeyPreference.load().displayString) or ESC to close"
+    }
 
     var body: some View {
         ZStack {
@@ -25,7 +32,7 @@ struct OverlayView: View {
                         .font(.headline)
                         .foregroundStyle(.secondary)
                     Spacer()
-                    Text("\(HotkeyPreference.load().displayString) or ESC to close")
+                    Text(closeHint)
                         .font(.caption)
                         .foregroundStyle(.tertiary)
                 }
@@ -82,10 +89,11 @@ struct OverlayView: View {
 struct WindowGridView: View {
     let windows: [WindowInfo]
     @Binding var selectedIndex: Int
+    @ObservedObject private var settings = AppSettings.shared
 
-    private let columns = [
-        GridItem(.adaptive(minimum: 160, maximum: 200), spacing: 12)
-    ]
+    private var columns: [GridItem] {
+        [GridItem(.adaptive(minimum: settings.thumbnailSize, maximum: settings.thumbnailSize + 40), spacing: 12)]
+    }
 
     var body: some View {
         ScrollView {
@@ -131,6 +139,7 @@ struct WindowGridView: View {
 struct WindowCell: View {
     let window: WindowInfo
     let isSelected: Bool
+    @ObservedObject private var settings = AppSettings.shared
 
     var body: some View {
         VStack(spacing: 6) {
@@ -162,7 +171,7 @@ struct WindowCell: View {
                         .foregroundStyle(.tertiary)
                 }
             }
-            .frame(height: 110)
+            .frame(height: settings.thumbnailSize * 0.68)
 
             VStack(spacing: 2) {
                 Text(window.appName)
@@ -170,10 +179,12 @@ struct WindowCell: View {
                     .fontWeight(.semibold)
                     .foregroundStyle(.primary)
                     .lineLimit(1)
-                Text(window.title)
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
+                if settings.showTitles {
+                    Text(window.title)
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                }
             }
         }
         .contentShape(Rectangle())

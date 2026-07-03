@@ -24,10 +24,39 @@ final class HotbarStore: ObservableObject {
     }
 
     func refreshWindows() {
-        let fetched = WindowFetcher.fetchAllWindows()
+        let fetched = Self.applyExclusions(
+            WindowFetcher.fetchAllWindows(),
+            excluded: AppSettings.shared.excludedApps
+        )
         DispatchQueue.main.async {
             self.windows = fetched
+            // AltTab-style: preselect the previous window so a quick
+            // press-and-release swaps to the last used window
+            self.selectedIndex = (AppSettings.shared.holdMode && fetched.count > 1) ? 1 : 0
             self.loadThumbnails()
+        }
+    }
+
+    static func applyExclusions(_ windows: [WindowInfo], excluded: Set<String>) -> [WindowInfo] {
+        guard !excluded.isEmpty else { return windows }
+        return windows.filter { !excluded.contains($0.appName) }
+    }
+
+    func cycleSelection(forward: Bool) {
+        guard !windows.isEmpty else { return }
+        let count = windows.count
+        selectedIndex = ((selectedIndex + (forward ? 1 : -1)) % count + count) % count
+    }
+
+    func activateSelectedWindow() {
+        guard windows.indices.contains(selectedIndex) else {
+            NotificationCenter.default.post(name: .hideOverlay, object: nil)
+            return
+        }
+        let window = windows[selectedIndex]
+        NotificationCenter.default.post(name: .hideOverlay, object: nil)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.08) {
+            self.activateWindow(window)
         }
     }
 
