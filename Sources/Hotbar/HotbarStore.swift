@@ -1,5 +1,6 @@
 import Foundation
 import AppKit
+import ScreenCaptureKit
 
 final class HotbarStore: ObservableObject {
     static let shared = HotbarStore()
@@ -26,6 +27,43 @@ final class HotbarStore: ObservableObject {
         let fetched = WindowFetcher.fetchAllWindows()
         DispatchQueue.main.async {
             self.windows = fetched
+            self.loadThumbnails()
+        }
+    }
+
+    /// Capture window previews via ScreenCaptureKit (macOS 14+).
+    /// Requires Screen Recording permission; silently keeps app icons otherwise.
+    private func loadThumbnails() {
+        guard #available(macOS 14.0, *) else { return }
+        guard CGPreflightScreenCaptureAccess() else { return }
+
+        Task { @MainActor in
+            guard let content = try? await SCShareableContent.excludingDesktopWindows(true, onScreenWindowsOnly: true) else {
+                return
+            }
+            for windowInfo in self.windows where windowInfo.thumbnail == nil {
+                guard let scWindow = content.windows.first(where: { $0.windowID == windowInfo.id }) else { continue }
+
+                let maxWidth: CGFloat = 360
+                let scale = min(1, maxWidth / max(scWindow.frame.width, 1))
+                let config = SCStreamConfiguration()
+                config.width = max(1, Int(scWindow.frame.width * scale))
+                config.height = max(1, Int(scWindow.frame.height * scale))
+                config.showsCursor = false
+                let filter = SCContentFilter(desktopIndependentWindow: scWindow)
+
+                guard let cgImage = try? await SCScreenshotManager.captureImage(
+                    contentFilter: filter, configuration: config
+                ) else { continue }
+
+                // Windows list may have been refreshed meanwhile — match by id
+                if let idx = self.windows.firstIndex(where: { $0.id == windowInfo.id }) {
+                    self.windows[idx].thumbnail = NSImage(
+                        cgImage: cgImage,
+                        size: NSSize(width: cgImage.width, height: cgImage.height)
+                    )
+                }
+            }
         }
     }
 

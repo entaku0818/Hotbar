@@ -79,26 +79,6 @@ final class WindowFetcher {
         return windows
     }
 
-    // ScreenCaptureKit でサムネイルを非同期取得（macOS 14.0+）
-    @available(macOS 14.0, *)
-    static func captureThumbnail(windowID: CGWindowID) async -> NSImage? {
-        do {
-            let content = try await SCShareableContent.current
-            guard let scWindow = content.windows.first(where: { $0.windowID == windowID }) else {
-                return nil
-            }
-            let filter = SCContentFilter(desktopIndependentWindow: scWindow)
-            let config = SCStreamConfiguration()
-            config.width = 400
-            config.height = 300
-            config.scalesToFit = true
-            let cgImage = try await SCScreenshotManager.captureImage(contentFilter: filter, configuration: config)
-            return NSImage(cgImage: cgImage, size: NSSize(width: cgImage.width, height: cgImage.height))
-        } catch {
-            return nil
-        }
-    }
-
     static func activateWindow(_ windowInfo: WindowInfo) {
         NSLog("[Hotbar] activateWindow: pid=%d app=%@ title=%@", windowInfo.pid, windowInfo.appName, windowInfo.title)
 
