@@ -30,22 +30,36 @@ final class WindowFetcher {
         let runningApps = NSWorkspace.shared.runningApplications
             .reduce(into: [pid_t: NSRunningApplication]()) { $0[$1.processIdentifier] = $1 }
 
+        let ownPID = ProcessInfo.processInfo.processIdentifier
+
         for info in windowList {
             guard
                 let windowID = info[kCGWindowNumber] as? CGWindowID,
                 let ownerPID = info[kCGWindowOwnerPID] as? pid_t,
                 let layer = info[kCGWindowLayer] as? Int,
-                layer == 0
+                layer == 0,
+                ownerPID != ownPID
             else { continue }
 
-            let title = info[kCGWindowName] as? String ?? ""
-            let ownerName = info[kCGWindowOwnerName] as? String ?? "Unknown"
+            // NOTE: kCGWindowName requires Screen Recording permission and is
+            // usually empty without it — never filter on the title. Filter by
+            // window size instead to drop tiny helper/invisible windows.
+            if let boundsDict = info[kCGWindowBounds] as? [String: CGFloat] {
+                let width = boundsDict["Width"] ?? 0
+                let height = boundsDict["Height"] ?? 0
+                guard width >= 100, height >= 80 else { continue }
+            }
 
+            let ownerName = info[kCGWindowOwnerName] as? String ?? "Unknown"
             guard !ownerName.isEmpty,
                   ownerName != "Window Server",
                   ownerName != "Dock",
-                  !title.isEmpty
+                  ownerName != "スクリーンショット",
+                  ownerName != "Screenshot"
             else { continue }
+
+            let rawTitle = info[kCGWindowName] as? String ?? ""
+            let title = rawTitle.isEmpty ? ownerName : rawTitle
 
             let app = runningApps[ownerPID]
             let bundleID = app?.bundleIdentifier
