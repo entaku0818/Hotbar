@@ -17,6 +17,7 @@
 		6DA7A70ACA3B923CC1D93F6F /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F726BE29BF0DC560A749403 /* SettingsView.swift */; };
 		A7A9575F74F6B404AC4DC201 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4DC47A9345BC01A6499FEB1 /* AppDelegate.swift */; };
 		ABC1A1036E996B0B8279AFA5 /* OverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B61397C5AFE82048B3E3A553 /* OverlayView.swift */; };
+		CDF68041BE60C6409434205A /* AppSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = A906E8A4133AB3A7F2DD1533 /* AppSettings.swift */; };
 		E2A8EBDF5D9A523123417FDB /* HotKeyManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C504CA4B7DCC02EC6AB6313E /* HotKeyManager.swift */; };
 		E9D6F2F759CB736508F016BE /* HotkeyPreference.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A27C8195A439F37E688FA04 /* HotkeyPreference.swift */; };
 /* End PBXBuildFile section */
@@ -41,6 +42,7 @@
 		6571C4CA6B38676448ACE3E3 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		9F726BE29BF0DC560A749403 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		A0E6D53A22A2A2681210878C /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
+		A906E8A4133AB3A7F2DD1533 /* AppSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSettings.swift; sourceTree = "<group>"; };
 		AE4F9142FBC3C7C38AD90133 /* HotbarTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = HotbarTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		B61397C5AFE82048B3E3A553 /* OverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverlayView.swift; sourceTree = "<group>"; };
 		B74A331CD8B6B69AD90A3EF2 /* OverlayWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverlayWindowController.swift; sourceTree = "<group>"; };
@@ -55,6 +57,7 @@
 			isa = PBXGroup;
 			children = (
 				D4DC47A9345BC01A6499FEB1 /* AppDelegate.swift */,
+				A906E8A4133AB3A7F2DD1533 /* AppSettings.swift */,
 				6571C4CA6B38676448ACE3E3 /* Assets.xcassets */,
 				0775AF6317B784BE164245B6 /* Hotbar.entitlements */,
 				DAE0060020A099E7B3786D4A /* HotbarApp.swift */,
@@ -192,6 +195,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				A7A9575F74F6B404AC4DC201 /* AppDelegate.swift in Sources */,
+				CDF68041BE60C6409434205A /* AppSettings.swift in Sources */,
 				E2A8EBDF5D9A523123417FDB /* HotKeyManager.swift in Sources */,
 				4BE288AFB063EB1B95B34B90 /* HotbarApp.swift in Sources */,
 				14FD789DB2C56FBBC913525F /* HotbarStore.swift in Sources */,
