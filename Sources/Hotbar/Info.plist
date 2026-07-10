@@ -32,5 +32,13 @@
     <true/>
     <key>NSAccessibilityUsageDescription</key>
     <string>Hotbar needs Accessibility access to read window information and switch between windows.</string>
+    <key>LemonSqueezyStoreID</key>
+    <string>REPLACE_ME_STORE_ID</string>
+    <key>LemonSqueezyProductID</key>
+    <string>REPLACE_ME_PRODUCT_ID</string>
+    <key>LemonSqueezyCheckoutURL</key>
+    <string>https://REPLACE_ME.lemonsqueezy.com/checkout/buy/REPLACE_ME_VARIANT_ID</string>
+    <key>LemonSqueezyAPIBaseURL</key>
+    <string>https://api.lemonsqueezy.com/v1</string>
 </dict>
 </plist>

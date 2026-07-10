@@ -45,6 +45,11 @@ final class OverlayWindowController: NSObject {
     func show() {
         guard let panel = panel else { return }
 
+        guard !LicenseManager.shared.isGated else {
+            NotificationCenter.default.post(name: .licenseGateRequested, object: nil)
+            return
+        }
+
         HotbarStore.shared.refreshWindows()
 
         if let screen = NSScreen.main {

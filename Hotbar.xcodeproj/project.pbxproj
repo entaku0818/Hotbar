@@ -9,17 +9,24 @@
 /* Begin PBXBuildFile section */
 		0A09240E19DCB246AC8710BB /* WindowInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3917B0EAC9AC657A20EA1B06 /* WindowInfo.swift */; };
 		0A39EDE3C09052A070B5808D /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0E6D53A22A2A2681210878C /* OnboardingView.swift */; };
+		1086C0F4F79BB02F0980393C /* LicenseManagerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A6617D306D87BC6945D61B6 /* LicenseManagerTests.swift */; };
 		142EFAB10F67E88132F2FBEC /* WindowInfoTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0ACFE9F19048F82EB7BF58BD /* WindowInfoTests.swift */; };
 		14FD789DB2C56FBBC913525F /* HotbarStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 599BB33146DC51BA58085A55 /* HotbarStore.swift */; };
 		19CF7B4965B37E0C006C3B71 /* OverlayWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B74A331CD8B6B69AD90A3EF2 /* OverlayWindowController.swift */; };
 		24D00CCBABACB3B3BA4410D2 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 6571C4CA6B38676448ACE3E3 /* Assets.xcassets */; };
+		2A878A22C7EDF163782A6726 /* LicenseManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F38306D9932E4B892685D6EE /* LicenseManager.swift */; };
+		37904F4AD6BC154466AE52ED /* UpdateChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2596B0D4B3A101B2C6909195 /* UpdateChecker.swift */; };
 		4BE288AFB063EB1B95B34B90 /* HotbarApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = DAE0060020A099E7B3786D4A /* HotbarApp.swift */; };
 		6DA7A70ACA3B923CC1D93F6F /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F726BE29BF0DC560A749403 /* SettingsView.swift */; };
+		76B126958DD47A809D5045DA /* UpdateCheckerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1DE73A487A76D10C015C04F3 /* UpdateCheckerTests.swift */; };
+		7C67E9EE9F075E465BF2FF79 /* LicenseGateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E4529230F3A656CA2E275C9 /* LicenseGateView.swift */; };
+		A1983C8CB111B812B28EB949 /* LicenseClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0DB7798B1BFFF4A0D5E2BFFA /* LicenseClient.swift */; };
 		A7A9575F74F6B404AC4DC201 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4DC47A9345BC01A6499FEB1 /* AppDelegate.swift */; };
 		ABC1A1036E996B0B8279AFA5 /* OverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B61397C5AFE82048B3E3A553 /* OverlayView.swift */; };
 		CDF68041BE60C6409434205A /* AppSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = A906E8A4133AB3A7F2DD1533 /* AppSettings.swift */; };
 		E2A8EBDF5D9A523123417FDB /* HotKeyManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C504CA4B7DCC02EC6AB6313E /* HotKeyManager.swift */; };
 		E9D6F2F759CB736508F016BE /* HotkeyPreference.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A27C8195A439F37E688FA04 /* HotkeyPreference.swift */; };
+		F934AC74964719695D34E01A /* LemonSqueezyConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = D26ECFE7B7E63176AA4464B2 /* LemonSqueezyConfig.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -35,10 +42,15 @@
 /* Begin PBXFileReference section */
 		0775AF6317B784BE164245B6 /* Hotbar.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Hotbar.entitlements; sourceTree = "<group>"; };
 		0ACFE9F19048F82EB7BF58BD /* WindowInfoTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowInfoTests.swift; sourceTree = "<group>"; };
+		0DB7798B1BFFF4A0D5E2BFFA /* LicenseClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LicenseClient.swift; sourceTree = "<group>"; };
+		1DE73A487A76D10C015C04F3 /* UpdateCheckerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateCheckerTests.swift; sourceTree = "<group>"; };
+		2596B0D4B3A101B2C6909195 /* UpdateChecker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateChecker.swift; sourceTree = "<group>"; };
 		3917B0EAC9AC657A20EA1B06 /* WindowInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowInfo.swift; sourceTree = "<group>"; };
 		3A27C8195A439F37E688FA04 /* HotkeyPreference.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotkeyPreference.swift; sourceTree = "<group>"; };
 		4043786DCD7C08A378648EDB /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		4A6617D306D87BC6945D61B6 /* LicenseManagerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LicenseManagerTests.swift; sourceTree = "<group>"; };
 		599BB33146DC51BA58085A55 /* HotbarStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotbarStore.swift; sourceTree = "<group>"; };
+		5E4529230F3A656CA2E275C9 /* LicenseGateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LicenseGateView.swift; sourceTree = "<group>"; };
 		6571C4CA6B38676448ACE3E3 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		9F726BE29BF0DC560A749403 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		A0E6D53A22A2A2681210878C /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
@@ -47,9 +59,11 @@
 		B61397C5AFE82048B3E3A553 /* OverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverlayView.swift; sourceTree = "<group>"; };
 		B74A331CD8B6B69AD90A3EF2 /* OverlayWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverlayWindowController.swift; sourceTree = "<group>"; };
 		C504CA4B7DCC02EC6AB6313E /* HotKeyManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotKeyManager.swift; sourceTree = "<group>"; };
+		D26ECFE7B7E63176AA4464B2 /* LemonSqueezyConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LemonSqueezyConfig.swift; sourceTree = "<group>"; };
 		D4DC47A9345BC01A6499FEB1 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		DAE0060020A099E7B3786D4A /* HotbarApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotbarApp.swift; sourceTree = "<group>"; };
 		E38B2840A45F115CE6235EDF /* Hotbar.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Hotbar.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		F38306D9932E4B892685D6EE /* LicenseManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LicenseManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -69,7 +83,9 @@
 				B61397C5AFE82048B3E3A553 /* OverlayView.swift */,
 				B74A331CD8B6B69AD90A3EF2 /* OverlayWindowController.swift */,
 				9F726BE29BF0DC560A749403 /* SettingsView.swift */,
+				2596B0D4B3A101B2C6909195 /* UpdateChecker.swift */,
 				3917B0EAC9AC657A20EA1B06 /* WindowInfo.swift */,
+				BBBC30AED3661F248643C19A /* Licensing */,
 			);
 			name = Hotbar;
 			path = Sources/Hotbar;
@@ -93,9 +109,22 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
+		BBBC30AED3661F248643C19A /* Licensing */ = {
+			isa = PBXGroup;
+			children = (
+				D26ECFE7B7E63176AA4464B2 /* LemonSqueezyConfig.swift */,
+				0DB7798B1BFFF4A0D5E2BFFA /* LicenseClient.swift */,
+				5E4529230F3A656CA2E275C9 /* LicenseGateView.swift */,
+				F38306D9932E4B892685D6EE /* LicenseManager.swift */,
+			);
+			path = Licensing;
+			sourceTree = "<group>";
+		};
 		F2B6B9BB5D2DD1A50954D4EF /* HotbarTests */ = {
 			isa = PBXGroup;
 			children = (
+				4A6617D306D87BC6945D61B6 /* LicenseManagerTests.swift */,
+				1DE73A487A76D10C015C04F3 /* UpdateCheckerTests.swift */,
 				0ACFE9F19048F82EB7BF58BD /* WindowInfoTests.swift */,
 			);
 			name = HotbarTests;
@@ -200,10 +229,15 @@
 				4BE288AFB063EB1B95B34B90 /* HotbarApp.swift in Sources */,
 				14FD789DB2C56FBBC913525F /* HotbarStore.swift in Sources */,
 				E9D6F2F759CB736508F016BE /* HotkeyPreference.swift in Sources */,
+				F934AC74964719695D34E01A /* LemonSqueezyConfig.swift in Sources */,
+				A1983C8CB111B812B28EB949 /* LicenseClient.swift in Sources */,
+				7C67E9EE9F075E465BF2FF79 /* LicenseGateView.swift in Sources */,
+				2A878A22C7EDF163782A6726 /* LicenseManager.swift in Sources */,
 				0A39EDE3C09052A070B5808D /* OnboardingView.swift in Sources */,
 				ABC1A1036E996B0B8279AFA5 /* OverlayView.swift in Sources */,
 				19CF7B4965B37E0C006C3B71 /* OverlayWindowController.swift in Sources */,
 				6DA7A70ACA3B923CC1D93F6F /* SettingsView.swift in Sources */,
+				37904F4AD6BC154466AE52ED /* UpdateChecker.swift in Sources */,
 				0A09240E19DCB246AC8710BB /* WindowInfo.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -212,6 +246,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				1086C0F4F79BB02F0980393C /* LicenseManagerTests.swift in Sources */,
+				76B126958DD47A809D5045DA /* UpdateCheckerTests.swift in Sources */,
 				142EFAB10F67E88132F2FBEC /* WindowInfoTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

@@ -8,6 +8,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private var statusItem: NSStatusItem?
     private var onboardingWindowController: NSWindowController?
     private var settingsWindowController: NSWindowController?
+    private var licenseGateWindowController: NSWindowController?
     private var permissionRetryTimer: Timer?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -18,6 +19,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         setupHotKeys()
         requestAccessibilityIfNeeded()
         showOnboardingIfNeeded()
+
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(showLicenseGate),
+            name: .licenseGateRequested,
+            object: nil
+        )
     }
 
     private func requestAccessibilityIfNeeded() {
@@ -67,6 +75,16 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         menu.addItem(.separator())
 
+        let licenseItem = NSMenuItem(title: "License…", action: #selector(showLicenseGate), keyEquivalent: "")
+        licenseItem.target = self
+        menu.addItem(licenseItem)
+
+        let updateItem = NSMenuItem(title: "Check for Updates…", action: #selector(checkForUpdates), keyEquivalent: "")
+        updateItem.target = self
+        menu.addItem(updateItem)
+
+        menu.addItem(.separator())
+
         let quitItem = NSMenuItem(title: "Quit Hotbar", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
         menu.addItem(quitItem)
 
@@ -103,6 +121,60 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     private func setupOverlay() {
         overlayWindowController = OverlayWindowController()
+    }
+
+    // MARK: - Licensing
+
+    @objc func showLicenseGate() {
+        if licenseGateWindowController == nil {
+            let window = NSWindow(
+                contentRect: NSRect(x: 0, y: 0, width: 420, height: 480),
+                styleMask: [.titled, .closable],
+                backing: .buffered,
+                defer: false
+            )
+            window.title = "Hotbar License"
+            window.contentView = NSHostingView(rootView: LicenseGateView(licenseManager: LicenseManager.shared))
+            window.center()
+            window.isReleasedWhenClosed = false
+            licenseGateWindowController = NSWindowController(window: window)
+        }
+        licenseGateWindowController?.showWindow(nil)
+        NSApp.activate(ignoringOtherApps: true)
+    }
+
+    // MARK: - Updates
+
+    @objc func checkForUpdates() {
+        Task { @MainActor in
+            let result = await UpdateChecker.shared.checkForUpdate()
+            self.presentUpdateResult(result)
+        }
+    }
+
+    @MainActor
+    private func presentUpdateResult(_ result: UpdateCheckResult) {
+        let alert = NSAlert()
+        switch result {
+        case .upToDate:
+            alert.messageText = "You're up to date"
+            alert.informativeText = "Hotbar is on the latest version."
+            alert.addButton(withTitle: "OK")
+            alert.runModal()
+        case .updateAvailable(let version, let url):
+            alert.messageText = "Update available: \(version)"
+            alert.informativeText = "Open the release page to download the latest version."
+            alert.addButton(withTitle: "Open Release Page")
+            alert.addButton(withTitle: "Cancel")
+            if alert.runModal() == .alertFirstButtonReturn {
+                NSWorkspace.shared.open(url)
+            }
+        case .checkFailed:
+            alert.messageText = "Couldn't check for updates"
+            alert.informativeText = "Please check your internet connection and try again."
+            alert.addButton(withTitle: "OK")
+            alert.runModal()
+        }
     }
 
     private func setupHotKeys() {
