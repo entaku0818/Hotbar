@@ -48,7 +48,10 @@ struct GeneralSettingsTab: View {
                     Label("Window previews enabled", systemImage: "checkmark.circle.fill")
                         .foregroundStyle(.green)
                 } else {
-                    Text("Optional: window previews (thumbnails) and exact window titles need Screen Recording permission. Without it, app icons are shown.")
+                    Text(
+                        "Optional: window previews (thumbnails) and exact window titles need Screen Recording permission. " +
+                        "Without it, app icons are shown."
+                    )
                         .font(.caption)
                         .foregroundStyle(.secondary)
                     Button("Enable window previews…") {
@@ -124,7 +127,7 @@ struct ShortcutSettingsTab: View {
     private func startRecording() {
         isRecording = true
         recorderMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
-            if event.keyCode == 53, event.modifierFlags.intersection([.command, .option, .shift, .control]).isEmpty {
+            if event.keyCode == 53, event.modifierFlags.isDisjoint(with: [.command, .option, .shift, .control]) {
                 stopRecording()
                 return nil
             }

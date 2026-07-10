@@ -79,24 +79,22 @@ struct HotkeyPreference: Codable, Equatable {
     }
 
     static func keyName(for keyCode: UInt16) -> String {
-        switch Int(keyCode) {
-        case kVK_Space: return "Space"
-        case kVK_Return: return "↩"
-        case kVK_Tab: return "⇥"
-        case kVK_Escape: return "⎋"
-        case kVK_Delete: return "⌫"
-        case kVK_UpArrow: return "↑"
-        case kVK_DownArrow: return "↓"
-        case kVK_LeftArrow: return "←"
-        case kVK_RightArrow: return "→"
-        case kVK_F1...kVK_F20 where fKeyNames[Int(keyCode)] != nil:
-            return fKeyNames[Int(keyCode)] ?? "?"
-        default:
-            return characterName(for: keyCode)
-        }
+        namedKeys[Int(keyCode)] ?? characterName(for: keyCode)
     }
 
-    private static let fKeyNames: [Int: String] = [
+    /// Keys with a fixed display name, independent of keyboard layout.
+    /// F13–F20 are intentionally absent so they fall through to `characterName`,
+    /// matching the previous switch-based behavior.
+    private static let namedKeys: [Int: String] = [
+        kVK_Space: "Space",
+        kVK_Return: "↩",
+        kVK_Tab: "⇥",
+        kVK_Escape: "⎋",
+        kVK_Delete: "⌫",
+        kVK_UpArrow: "↑",
+        kVK_DownArrow: "↓",
+        kVK_LeftArrow: "←",
+        kVK_RightArrow: "→",
         kVK_F1: "F1", kVK_F2: "F2", kVK_F3: "F3", kVK_F4: "F4", kVK_F5: "F5",
         kVK_F6: "F6", kVK_F7: "F7", kVK_F8: "F8", kVK_F9: "F9", kVK_F10: "F10",
         kVK_F11: "F11", kVK_F12: "F12"

@@ -100,9 +100,7 @@ final class HotKeyManager {
     }
 
     private func handleCGEvent(proxy: CGEventTapProxy, type: CGEventType, event: CGEvent) -> Unmanaged<CGEvent>? {
-        // Re-enable tap if the system disabled it (timeout / user input flood)
-        if type == .tapDisabledByTimeout || type == .tapDisabledByUserInput {
-            if let tap = eventTap { CGEvent.tapEnable(tap: tap, enable: true) }
+        if handleTapDisabledIfNeeded(type: type) {
             return Unmanaged.passRetained(event)
         }
 
@@ -111,12 +109,7 @@ final class HotKeyManager {
 
         // Hold mode: releasing the hotkey's modifier activates the selection
         if type == .flagsChanged {
-            if AppSettings.shared.holdMode,
-               overlayController?.isVisible == true,
-               hotkey.hasModifier,
-               !hotkey.modifiersStillHeld(cgFlags: flags) {
-                DispatchQueue.main.async { HotbarStore.shared.activateSelectedWindow() }
-            }
+            handleFlagsChanged(flags: flags)
             return Unmanaged.passRetained(event)
         }
 
@@ -126,19 +119,7 @@ final class HotKeyManager {
 
         // Hotkey (user-configurable, default ⌥Tab). Shift reverses direction.
         if type == .keyDown, hotkey.matchesIgnoringShift(keyCode: keyCode, cgFlags: flags) {
-            let reverse = flags.contains(.maskShift) && !hotkey.shift
-            DispatchQueue.main.async {
-                guard let controller = self.overlayController else { return }
-                if controller.isVisible {
-                    if AppSettings.shared.holdMode {
-                        HotbarStore.shared.cycleSelection(forward: !reverse)
-                    } else {
-                        controller.toggle()
-                    }
-                } else {
-                    controller.show()
-                }
-            }
+            handleHotkeyPress(reverse: flags.contains(.maskShift) && !hotkey.shift)
             return nil // consume — don't pass to other apps
         }
 
@@ -153,46 +134,79 @@ final class HotKeyManager {
             return Unmanaged.passRetained(event)
         }
 
-        // ESC
-        if keyCode == 53 {
+        return handleOverlayVisibleKey(keyCode: keyCode, flags: flags, event: event)
+    }
+
+    /// Re-enables the tap if the system disabled it (timeout / user input flood).
+    /// Returns true when the event was fully handled here.
+    private func handleTapDisabledIfNeeded(type: CGEventType) -> Bool {
+        guard type == .tapDisabledByTimeout || type == .tapDisabledByUserInput else { return false }
+        if let tap = eventTap { CGEvent.tapEnable(tap: tap, enable: true) }
+        return true
+    }
+
+    private func handleFlagsChanged(flags: CGEventFlags) {
+        guard AppSettings.shared.holdMode,
+              overlayController?.isVisible == true,
+              hotkey.hasModifier,
+              !hotkey.modifiersStillHeld(cgFlags: flags) else { return }
+        DispatchQueue.main.async { HotbarStore.shared.activateSelectedWindow() }
+    }
+
+    private func handleHotkeyPress(reverse: Bool) {
+        DispatchQueue.main.async {
+            guard let controller = self.overlayController else { return }
+            if controller.isVisible {
+                if AppSettings.shared.holdMode {
+                    HotbarStore.shared.cycleSelection(forward: !reverse)
+                } else {
+                    controller.toggle()
+                }
+            } else {
+                controller.show()
+            }
+        }
+    }
+
+    /// Handles keys that only act while the overlay is visible: ESC, arrows,
+    /// Return, and the digit-slot keys (⌘+digit jump / hold-digit register).
+    private func handleOverlayVisibleKey(keyCode: Int64, flags: CGEventFlags, event: CGEvent) -> Unmanaged<CGEvent>? {
+        switch keyCode {
+        case 53: // ESC
             DispatchQueue.main.async { self.overlayController?.hide() }
             return nil
-        }
-
-        // Arrow keys → move selection, Return → activate
-        if keyCode == 123 || keyCode == 126 { // ← ↑
+        case 123, 126: // ← ↑
             DispatchQueue.main.async { HotbarStore.shared.cycleSelection(forward: false) }
             return nil
-        }
-        if keyCode == 124 || keyCode == 125 { // → ↓
+        case 124, 125: // → ↓
             DispatchQueue.main.async { HotbarStore.shared.cycleSelection(forward: true) }
             return nil
-        }
-        if keyCode == 36 { // Return
+        case 36: // Return
             DispatchQueue.main.async { HotbarStore.shared.activateSelectedWindow() }
             return nil
+        default:
+            return handleDigitSlotKey(keyCode: keyCode, flags: flags, event: event)
         }
+    }
 
-        // ⌘+1〜9 → slot jump (keyCodes 18-26 = 1-9 on main keyboard)
-        if flags.contains(.maskCommand), keyCode >= 18, keyCode <= 26 {
-            let digit = Int(keyCode) - 17
+    /// keyCodes 18-26 = 1-9 on the main keyboard. ⌘+digit jumps to a slot;
+    /// digit alone (held) registers the current selection into that slot.
+    private func handleDigitSlotKey(keyCode: Int64, flags: CGEventFlags, event: CGEvent) -> Unmanaged<CGEvent>? {
+        guard keyCode >= 18, keyCode <= 26 else {
+            return Unmanaged.passRetained(event)
+        }
+        let digit = Int(keyCode) - 17
+        if flags.contains(.maskCommand) {
             DispatchQueue.main.async {
                 self.overlayController?.hide()
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.08) {
                     HotbarStore.shared.activateSlot(index: digit)
                 }
             }
-            return nil
-        }
-
-        // 数字長押し → スロット登録
-        if !flags.contains(.maskCommand), keyCode >= 18, keyCode <= 26 {
-            let digit = Int(keyCode) - 17
+        } else {
             DispatchQueue.main.async { HoldKeyDetector.shared.start(digit: digit) }
-            return nil
         }
-
-        return Unmanaged.passRetained(event)
+        return nil
     }
 
     // MARK: - NSEvent fallback (when CGEventTap unavailable)

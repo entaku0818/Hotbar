@@ -23,7 +23,8 @@ struct OnboardingView: View {
         OnboardingStep(
             icon: "keyboard",
             title: "Open with ⌥+Tab",
-            description: "Press ⌥+Tab (Option+Tab) at any time to open the Hotbar overlay, even while using other apps. You can change this in Settings.",
+            description: "Press ⌥+Tab (Option+Tab) at any time to open the Hotbar overlay, even while using other apps. " +
+                "You can change this in Settings.",
             action: nil
         ),
         OnboardingStep(
