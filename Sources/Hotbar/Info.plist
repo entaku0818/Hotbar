@@ -33,12 +33,12 @@
     <key>NSAccessibilityUsageDescription</key>
     <string>Hotbar needs Accessibility access to read window information and switch between windows.</string>
     <key>PolarOrganizationID</key>
-    <string>REPLACE_ME_ORGANIZATION_ID</string>
+    <string>c6c11314-230a-4251-b5ec-cc2d8bc74fc2</string>
     <key>PolarProductID</key>
-    <string>REPLACE_ME_PRODUCT_ID</string>
+    <string>ef467e01-ce9e-4e7d-9842-452a01113758</string>
     <key>PolarCheckoutURL</key>
-    <string>https://buy.polar.sh/REPLACE_ME_PRODUCT_ID</string>
+    <string>https://sandbox-api.polar.sh/v1/checkout-links/polar_cl_oPcuFw1oFdWDqtCCIT8UJ3hy0seeKUH3x1gtS2cQsM9/redirect</string>
     <key>PolarAPIBaseURL</key>
-    <string>https://api.polar.sh/v1</string>
+    <string>https://sandbox-api.polar.sh/v1</string>
 </dict>
 </plist>
