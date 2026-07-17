@@ -1,0 +1,8 @@
+// Debug configuration: points at the Polar.sh sandbox organization/product
+// so development builds never touch the production Polar account.
+// See Config/Release.xcconfig for the production equivalent.
+
+POLAR_ORGANIZATION_ID = c6c11314-230a-4251-b5ec-cc2d8bc74fc2
+POLAR_PRODUCT_ID = ef467e01-ce9e-4e7d-9842-452a01113758
+POLAR_CHECKOUT_URL = https:/$()/sandbox-api.polar.sh/v1/checkout-links/polar_cl_oPcuFw1oFdWDqtCCIT8UJ3hy0seeKUH3x1gtS2cQsM9/redirect
+POLAR_API_BASE_URL = https:/$()/sandbox-api.polar.sh/v1

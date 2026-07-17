@@ -1,4 +1,7 @@
 name: Hotbar
+configFiles:
+  Debug: Config/Debug.xcconfig
+  Release: Config/Release.xcconfig
 options:
   bundleIdPrefix: com.entaku
   deploymentTarget:
