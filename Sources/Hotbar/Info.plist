@@ -32,13 +32,13 @@
     <true/>
     <key>NSAccessibilityUsageDescription</key>
     <string>Hotbar needs Accessibility access to read window information and switch between windows.</string>
-    <key>LemonSqueezyStoreID</key>
-    <string>429083</string>
-    <key>LemonSqueezyProductID</key>
-    <string>1212709</string>
-    <key>LemonSqueezyCheckoutURL</key>
-    <string>https://hotbar.lemonsqueezy.com/checkout/buy/2614e22b-c397-4e2d-923d-864da5a9564a</string>
-    <key>LemonSqueezyAPIBaseURL</key>
-    <string>https://api.lemonsqueezy.com/v1</string>
+    <key>PolarOrganizationID</key>
+    <string>REPLACE_ME_ORGANIZATION_ID</string>
+    <key>PolarProductID</key>
+    <string>REPLACE_ME_PRODUCT_ID</string>
+    <key>PolarCheckoutURL</key>
+    <string>https://buy.polar.sh/REPLACE_ME_PRODUCT_ID</string>
+    <key>PolarAPIBaseURL</key>
+    <string>https://api.polar.sh/v1</string>
 </dict>
 </plist>

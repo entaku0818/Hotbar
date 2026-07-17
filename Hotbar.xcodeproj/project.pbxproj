@@ -26,7 +26,8 @@
 		CDF68041BE60C6409434205A /* AppSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = A906E8A4133AB3A7F2DD1533 /* AppSettings.swift */; };
 		E2A8EBDF5D9A523123417FDB /* HotKeyManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C504CA4B7DCC02EC6AB6313E /* HotKeyManager.swift */; };
 		E9D6F2F759CB736508F016BE /* HotkeyPreference.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A27C8195A439F37E688FA04 /* HotkeyPreference.swift */; };
-		F934AC74964719695D34E01A /* LemonSqueezyConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = D26ECFE7B7E63176AA4464B2 /* LemonSqueezyConfig.swift */; };
+		F934AC74964719695D34E01A /* PolarConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = D26ECFE7B7E63176AA4464B2 /* PolarConfig.swift */; };
+		9B3F2A1C6E4D0785B1E9F6A2 /* PolarLicenseClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C7D8E2F1A4B6905C2D8F1E4 /* PolarLicenseClientTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -59,7 +60,8 @@
 		B61397C5AFE82048B3E3A553 /* OverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverlayView.swift; sourceTree = "<group>"; };
 		B74A331CD8B6B69AD90A3EF2 /* OverlayWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverlayWindowController.swift; sourceTree = "<group>"; };
 		C504CA4B7DCC02EC6AB6313E /* HotKeyManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotKeyManager.swift; sourceTree = "<group>"; };
-		D26ECFE7B7E63176AA4464B2 /* LemonSqueezyConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LemonSqueezyConfig.swift; sourceTree = "<group>"; };
+		D26ECFE7B7E63176AA4464B2 /* PolarConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PolarConfig.swift; sourceTree = "<group>"; };
+		3C7D8E2F1A4B6905C2D8F1E4 /* PolarLicenseClientTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PolarLicenseClientTests.swift; sourceTree = "<group>"; };
 		D4DC47A9345BC01A6499FEB1 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		DAE0060020A099E7B3786D4A /* HotbarApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotbarApp.swift; sourceTree = "<group>"; };
 		E38B2840A45F115CE6235EDF /* Hotbar.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Hotbar.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -112,7 +114,7 @@
 		BBBC30AED3661F248643C19A /* Licensing */ = {
 			isa = PBXGroup;
 			children = (
-				D26ECFE7B7E63176AA4464B2 /* LemonSqueezyConfig.swift */,
+				D26ECFE7B7E63176AA4464B2 /* PolarConfig.swift */,
 				0DB7798B1BFFF4A0D5E2BFFA /* LicenseClient.swift */,
 				5E4529230F3A656CA2E275C9 /* LicenseGateView.swift */,
 				F38306D9932E4B892685D6EE /* LicenseManager.swift */,
@@ -124,6 +126,7 @@
 			isa = PBXGroup;
 			children = (
 				4A6617D306D87BC6945D61B6 /* LicenseManagerTests.swift */,
+				3C7D8E2F1A4B6905C2D8F1E4 /* PolarLicenseClientTests.swift */,
 				1DE73A487A76D10C015C04F3 /* UpdateCheckerTests.swift */,
 				0ACFE9F19048F82EB7BF58BD /* WindowInfoTests.swift */,
 			);
@@ -229,7 +232,7 @@
 				4BE288AFB063EB1B95B34B90 /* HotbarApp.swift in Sources */,
 				14FD789DB2C56FBBC913525F /* HotbarStore.swift in Sources */,
 				E9D6F2F759CB736508F016BE /* HotkeyPreference.swift in Sources */,
-				F934AC74964719695D34E01A /* LemonSqueezyConfig.swift in Sources */,
+				F934AC74964719695D34E01A /* PolarConfig.swift in Sources */,
 				A1983C8CB111B812B28EB949 /* LicenseClient.swift in Sources */,
 				7C67E9EE9F075E465BF2FF79 /* LicenseGateView.swift in Sources */,
 				2A878A22C7EDF163782A6726 /* LicenseManager.swift in Sources */,
@@ -247,6 +250,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				1086C0F4F79BB02F0980393C /* LicenseManagerTests.swift in Sources */,
+				9B3F2A1C6E4D0785B1E9F6A2 /* PolarLicenseClientTests.swift in Sources */,
 				76B126958DD47A809D5045DA /* UpdateCheckerTests.swift in Sources */,
 				142EFAB10F67E88132F2FBEC /* WindowInfoTests.swift in Sources */,
 			);

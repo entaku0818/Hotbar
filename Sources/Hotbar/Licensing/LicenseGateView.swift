@@ -24,8 +24,8 @@ struct LicenseGateView: View {
                 .multilineTextAlignment(.center)
                 .frame(maxWidth: 360)
 
-            Button("Buy on Lemon Squeezy") {
-                NSWorkspace.shared.open(LemonSqueezyConfig.checkoutURL)
+            Button("Buy on Polar") {
+                NSWorkspace.shared.open(PolarConfig.checkoutURL)
             }
             .buttonStyle(.borderedProminent)
             .controlSize(.large)

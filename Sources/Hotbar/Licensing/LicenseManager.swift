@@ -12,7 +12,7 @@ extension Notification.Name {
     static let licenseGateRequested = Notification.Name("licenseGateRequested")
 }
 
-/// Tracks the 14-day free trial and Lemon Squeezy license activation state.
+/// Tracks the 14-day free trial and Polar.sh license activation state.
 ///
 /// Trial/license state is stored in UserDefaults for v1 (simple, and
 /// injectable for tests). A future revision could move the license key to
@@ -37,7 +37,7 @@ final class LicenseManager: ObservableObject {
 
     init(
         defaults: UserDefaults = .standard,
-        client: LicenseClient = LemonSqueezyLicenseClient(),
+        client: LicenseClient = PolarLicenseClient(),
         now: @escaping () -> Date = Date.init
     ) {
         self.defaults = defaults
