@@ -26,6 +26,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             name: .licenseGateRequested,
             object: nil
         )
+
+        // Re-check the stored license against Polar on every launch. Offline
+        // launches fall back to the 14-day grace period inside LicenseManager.
+        Task { @MainActor in
+            await LicenseManager.shared.revalidate()
+        }
     }
 
     private func requestAccessibilityIfNeeded() {

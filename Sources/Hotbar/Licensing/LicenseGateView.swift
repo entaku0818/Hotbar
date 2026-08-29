@@ -13,12 +13,11 @@ struct LicenseGateView: View {
                 .font(.system(size: 48, weight: .light))
                 .foregroundStyle(.secondary)
 
-            Text("Your free trial has ended")
+            Text(headline)
                 .font(.title2)
                 .fontWeight(.bold)
 
-            Text("Hotbar is ¥1,500, one-time purchase — no subscription. " +
-                 "Purchases are refundable within 14 days.")
+            Text(explanation)
                 .font(.callout)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
@@ -61,6 +60,22 @@ struct LicenseGateView: View {
         }
         .padding(32)
         .frame(width: 420)
+    }
+
+    private var headline: String {
+        licenseManager.status == .licenseValidationExpired
+            ? "We couldn't verify your license"
+            : "Your free trial has ended"
+    }
+
+    private var explanation: String {
+        if licenseManager.status == .licenseValidationExpired {
+            return "Hotbar checks your license with Polar every so often, and it has been "
+                + "more than 14 days since the last successful check. Reconnect to the "
+                + "internet and reopen Hotbar, or re-enter your license key below."
+        }
+        return "Hotbar is ¥1,500, one-time purchase — no subscription. "
+            + "Purchases are refundable within 14 days."
     }
 
     private func activate() {
