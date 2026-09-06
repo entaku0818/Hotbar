@@ -6,4 +6,5 @@ DerivedData/
 *.resolved
 build/*.dmg
 build/*.zip
+build/*.bak
 *.xcarchive

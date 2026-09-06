@@ -20,7 +20,7 @@
 set -euo pipefail
 
 VERSION="${1:-$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' \
-  "$(pwd)/Sources/Hotbar/Info.plist" 2>/dev/null || echo "1.0.0")}"
+  "$(pwd)/Sources/Hotbar/Info.plist" 2>/dev/null || echo "1.1.0")}"
 SCHEME="Hotbar"
 PROJECT="Hotbar.xcodeproj"
 ARCHIVE_PATH="/tmp/Hotbar-${VERSION}.xcarchive"

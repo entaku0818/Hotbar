@@ -33,7 +33,7 @@ Hotbar(以下「本アプリ」)は、macOS向けのウィンドウスイッチ�
 
 - Polar.shのプライバシーポリシー: https://polar.sh/legal/privacy
 
-ライセンスキーの検証のため、本アプリはライセンスキー([および場合によりデバイス識別子])をPolar.shのLicense Key API(activate/validate)に送信します。この通信内容は購入者本人のライセンスキーの有効性確認のみに使用されます。
+ライセンスキーの検証のため、本アプリはライセンスキーとデバイス名（Macのホスト名）をPolar.shのLicense Key API（activate/validate）に送信します。この通信内容は購入者本人のライセンスキーの有効性確認のみに使用されます。
 
 ## お問い合わせ
 

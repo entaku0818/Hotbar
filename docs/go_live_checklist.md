@@ -1,9 +1,9 @@
 # Hotbar 発売手順（実ID投入チェックリスト）
 
-最終更新: 2026-08-29
+最終更新: 2026-09-05
 
 Polar.sh で本番商品を作ったあと、**何をどの順で差し替えれば売れるか**の手順書。
-コード側のブロッカーは解消済みなので、ここに書いてあることだけやれば売れる状態になる。
+配布前に、ここに書いてある項目をすべて解消すること。
 
 所要時間の目安: 30〜40分（うち公証の待ち時間が約5分）。
 
@@ -17,10 +17,10 @@ Polar.sh で本番商品を作ったあと、**何をどの順で差し替えれ
 | notarytool 認証情報 | ✅ 完了。キーチェーンに `hotbar-notary` プロファイル登録済み |
 | ライセンス機構（トライアル/アクティベート/再検証） | ✅ 実装・テスト済み |
 | Polar のサンドボックス設定 | ✅ `Config/Debug.xcconfig` に投入済み |
-| Polar の**本番**設定 | ⚠️ `Config/Release.xcconfig` に値は入っているが、**実在する本番商品かは未確認**（下記 STEP 1） |
-| ランディングページ | ⚠️ 購入導線はプレースホルダ。実IDで差し替え（STEP 3） |
+| Polar の**本番**設定 | ✅ `Config/Release.xcconfig` に投入済み。本番 Checkout URL の HTTP 200 を確認済み |
+| ランディングページ | ⚠️ プレースホルダは4箇所。EULA / Privacy は `noindex` のまま（STEP 3） |
 | EULA / プライバシーポリシー | ❌ 下書きのまま。`[ ]` が未確定（STEP 0） |
-| GitHub Release v1.1.0 | ⚠️ 公開されたまま。1.0.0 を配るなら要判断（STEP 5） |
+| GitHub Release v1.1.0 | ✅ `Info.plist` を 1.1.0 に統一済み（STEP 5） |
 
 ---
 
@@ -37,16 +37,14 @@ Polar.sh で本番商品を作ったあと、**何をどの順で差し替えれ
 | `docs/eula_draft.md:54` | 準拠法域（例: 日本法） |
 | `docs/eula_draft.md:58` | 問い合わせ先 |
 | `docs/privacy_draft.md:15` | クラッシュレポートを入れるかどうか（現状は未実装のままでよい） |
-| `docs/privacy_draft.md:36` | 「デバイス識別子」を送っているかの確定 — **送っている**（下記） |
 | `docs/privacy_draft.md:40` | 問い合わせメールアドレス |
 
-**プライバシーポリシーの事実確認**: `docs/privacy_draft.md:36` の
-「ライセンスキー（および場合によりデバイス識別子）」は `[ ]` のままだが、実装は
+**プライバシーポリシーの事実確認**: 実装は
 **Mac のホスト名を送っている**。`LicenseManager.activate()` の既定引数が
 `ProcessInfo.processInfo.hostName` で、それが Polar の activate API に `label` として
 渡る（`Sources/Hotbar/Licensing/LicenseClient.swift:67`）。ホスト名には
-「〜のMacBook Pro」のように本名が入りうるので、`[ ]` を外して
-「ライセンスキーとデバイス名（ホスト名）を送信します」と**断定形で書くこと**。
+「〜のMacBook Pro」のように本名が入りうる。`docs/privacy_draft.md:36` には「ライセンスキーとデバイス名
+（ホスト名）を送信します」と断定形で記載済み。
 
 埋めたら `~/repository/Hotbar-landing/public/eula.html` と `privacy.html` を再生成する
 （両ファイル冒頭の警告バナーと `<meta name="robots" content="noindex">` を外すのを忘れずに）。
@@ -57,7 +55,9 @@ Polar.sh で本番商品を作ったあと、**何をどの順で差し替えれ
 
 ---
 
-## STEP 1. Polar で本番商品を作り、4つの値を差し替える
+## STEP 1. Polar の本番設定を確認する
+
+本番 Checkout URL は 2026-09-05 に HTTP 200 を確認済み。
 
 差し替えるのは **`Config/Release.xcconfig` の4行だけ**。コードには一切ハードコードされていない。
 
@@ -102,7 +102,7 @@ DMG を署名・公証・staple → 検証」まで通る。所要 5〜7分（Ap
 
 ```
 --- spctl --assess --type exec -vv (app) ---
-/tmp/Hotbar-1.0.0-export/Hotbar.app: accepted
+/tmp/Hotbar-1.1.0-export/Hotbar.app: accepted
 source=Notarized Developer ID
 --- stapler validate (dmg) ---
 The validate action worked!
@@ -129,7 +129,7 @@ xcrun notarytool store-credentials "hotbar-notary" \
 
 DMG をどこかに置いて公開URLを得る（GitHub Release / R2 / Vercel の static など）。
 
-そのうえで `~/repository/Hotbar-landing/public/index.html` の**2種類のプレースホルダ**を置換する:
+そのうえで `~/repository/Hotbar-landing/public/index.html` に残る**2種類、4箇所のプレースホルダ**を置換する:
 
 | プレースホルダ | 出現行 | 置換先 |
 |---|---|---|
@@ -138,7 +138,7 @@ DMG をどこかに置いて公開URLを得る（GitHub Release / R2 / Vercel �
 
 ```bash
 cd ~/repository/Hotbar-landing
-sed -i '' 's|__POLAR_CHECKOUT_URL__|https://buy.polar.sh/XXXX|g; s|__DMG_DOWNLOAD_URL__|https://XXXX/Hotbar-1.0.0.dmg|g' public/index.html
+sed -i '' 's|__POLAR_CHECKOUT_URL__|https://buy.polar.sh/XXXX|g; s|__DMG_DOWNLOAD_URL__|https://XXXX/Hotbar-1.1.0.dmg|g' public/index.html
 grep -c '__' public/index.html      # 0 になること
 ```
 
@@ -185,19 +185,12 @@ defaults delete com.entaku.Hotbar licenseTrialStartDate
 
 ---
 
-## STEP 5. リリース公開（人間の判断）
+## STEP 5. リリース公開
 
-⚠️ **GitHub には Release v1.1.0 が公開されたままになっている**（2026-07-03 公開）。
-一方 `Sources/Hotbar/Info.plist` のバージョンは **1.0.0**。
+GitHub Release `v1.1.0` と `Sources/Hotbar/Info.plist` のバージョンは
+**1.1.0 に統一済み**。`UpdateChecker` が起動ごとに誤って更新通知を出す衝突は解消した。
 
-`UpdateChecker` は GitHub の latest release (`v1.1.0`) と実行中バージョン (`1.0.0`) を
-比較するため、**このまま 1.0.0 を配ると購入者の起動のたびに「更新があります」と出る**。
-どちらかを選ぶこと:
-
-- (A) v1.1.0 の Release を削除 or pre-release に落として、1.0.0 を正式版として出す
-- (B) Info.plist を 1.2.0 などに上げて、v1.1.0 より新しいバージョンとして出す
-
-決めてから Release を公開する。
+公証済みの `Hotbar-1.1.0.dmg` を Release `v1.1.0` の配布アセットにすること。
 
 ---
 
