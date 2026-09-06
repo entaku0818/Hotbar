@@ -1,6 +1,6 @@
 # Hotbar 発売手順（実ID投入チェックリスト）
 
-最終更新: 2026-09-05
+最終更新: 2026-09-06
 
 Polar.sh で本番商品を作ったあと、**何をどの順で差し替えれば売れるか**の手順書。
 配布前に、ここに書いてある項目をすべて解消すること。
@@ -20,7 +20,8 @@ Polar.sh で本番商品を作ったあと、**何をどの順で差し替えれ
 | Polar の**本番**設定 | ✅ `Config/Release.xcconfig` に投入済み。本番 Checkout URL の HTTP 200 を確認済み |
 | ランディングページ | ⚠️ プレースホルダは4箇所。EULA / Privacy は `noindex` のまま（STEP 3） |
 | EULA / プライバシーポリシー | ❌ 下書きのまま。`[ ]` が未確定（STEP 0） |
-| GitHub Release v1.1.0 | ✅ `Info.plist` を 1.1.0 に統一済み（STEP 5） |
+| GitHub Release v1.1.0 | ⚠️ バージョンは統一済みだが、**公開中のアセットが Lemon Squeezy 時代のDMG**（STEP 5） |
+| 配布用 DMG | ✅ `build/Hotbar-1.1.0.dmg` を 2026-09-06 に再ビルド。公証+staple 済み・Polar本番を向いている |
 
 ---
 
@@ -187,10 +188,46 @@ defaults delete com.entaku.Hotbar licenseTrialStartDate
 
 ## STEP 5. リリース公開
 
-GitHub Release `v1.1.0` と `Sources/Hotbar/Info.plist` のバージョンは
-**1.1.0 に統一済み**。`UpdateChecker` が起動ごとに誤って更新通知を出す衝突は解消した。
+### バージョンの統一は完了している
 
-公証済みの `Hotbar-1.1.0.dmg` を Release `v1.1.0` の配布アセットにすること。
+`Info.plist` を **1.1.0** に上げて、公開中の Release タグ `v1.1.0` と揃えた（`407be3d`）。
+`SemanticVersion.isNewer` は厳密な `>` 比較なので、`v1.1.0` と `1.1.0` では
+`.upToDate` になり「更新があります」は出ない（`UpdateChecker.swift:45-55`）。
+
+### ⚠️ 公開中のアセットが古い。差し替えるまで告知しないこと
+
+```
+Release v1.1.0 (Latest, 公開 2026-07-03)
+  └ Hotbar-1.1.0.dmg   589,295 bytes   ダウンロード数 0
+```
+
+**この DMG は Lemon Squeezy 時代のもの。** Polar への移行コミット `33a7075` は
+2026-07-18 で、リリース公開の15日後。公開中のバイナリは**もう使っていない決済基盤を叩く**ので、
+購入者のアクティベートが通らない。
+
+さらに `Info.plist` を 1.1.0 に揃えたことで、UpdateChecker 上はこれが「最新版」になった。
+リリースページに来た人はこの壊れたビルドを掴む。**幸いダウンロード数はまだ 0。**
+
+```bash
+gh release upload v1.1.0 build/Hotbar-1.1.0.dmg --clobber -R entaku0818/Hotbar
+```
+
+### ローカルに残っている古いDMGに注意
+
+`build/Hotbar-1.1.0.dmg.stale-20260829` は **2026-08-29 15:56 のビルド**で、
+ライセンス強化コミット `778c76a`（同日 16:01）より前のもの。
+バイナリに `licenseLastValidatedAt` が入っておらず、
+**`defaults write com.entaku.Hotbar licenseKey any` で恒久的に解除できてしまう版**。
+公証も staple も通るので、見た目では正しいDMGと区別がつかない。**配らないこと。**
+
+配る DMG が正しいかは、これで確かめられる:
+
+```bash
+mnt=$(hdiutil attach -nobrowse -readonly build/Hotbar-1.1.0.dmg | grep -o '/Volumes/.*')
+strings "$mnt/Hotbar.app/Contents/MacOS/Hotbar" | grep -c licenseLastValidatedAt  # 0 なら配らない
+strings "$mnt/Hotbar.app/Contents/MacOS/Hotbar" | grep -o 'sandbox-api\.polar\.sh' # 出たら配らない
+hdiutil detach "$mnt"
+```
 
 ---
 
