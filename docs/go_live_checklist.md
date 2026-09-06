@@ -1,6 +1,6 @@
 # Hotbar 発売手順（実ID投入チェックリスト）
 
-最終更新: 2026-09-06（3）
+最終更新: 2026-09-06（4）
 
 Polar.sh で本番商品を作ったあと、**何をどの順で差し替えれば売れるか**の手順書。
 配布前に、ここに書いてある項目をすべて解消すること。
@@ -18,7 +18,7 @@ Polar.sh で本番商品を作ったあと、**何をどの順で差し替えれ
 | ライセンス機構（トライアル/アクティベート/再検証） | ✅ 実装・テスト済み |
 | Polar のサンドボックス設定 | ✅ `Config/Debug.xcconfig` に投入済み |
 | Polar の**本番**設定 | ✅ `Config/Release.xcconfig` に投入済み。本番 Checkout URL の HTTP 200 を確認済み |
-| ランディングページ | ⚠️ プレースホルダは4箇所。EULA / Privacy は `noindex` のまま（STEP 3） |
+| ランディングページ | ⚠️ プレースホルダ4箇所は本番URLに置換済み（未デプロイ・`93536f0`）。EULA / Privacy は `noindex` のまま（STEP 3） |
 | EULA / プライバシーポリシー | ❌ 下書きのまま。`[ ]` が未確定（STEP 0） |
 | GitHub Release v1.1.0 | ✅ 再ビルド版に差し替え済み。**リポジトリを public 化したので配布先として使える**（STEP 3） |
 | 配布用 DMG | ✅ `build/Hotbar-1.1.0.dmg` を 2026-09-06 に再ビルド。公証+staple 済み・Polar本番を向いている |
@@ -173,21 +173,19 @@ public 化で解消。
 
 ---
 
-### 置換作業
+### 置換作業 — ✅ 完了（2026-09-06, Hotbar-landing `93536f0`）
 
-DMG の公開URLが決まったら、`~/repository/Hotbar-landing/public/index.html` に残る
-**2種類、4箇所のプレースホルダ**を置換する:
+`~/repository/Hotbar-landing/public/index.html` の**2種類、4箇所**を実URLに置換済み。
+残プレースホルダは 0、両URLとも HTTP 200 を確認済み。目印の `<!-- PLACEHOLDER -->` コメントも除去した。
 
-| プレースホルダ | 出現行 | 置換先 |
-|---|---|---|
-| `__POLAR_CHECKOUT_URL__` | 260, 318 | Polar の本番 Checkout Link |
-| `__DMG_DOWNLOAD_URL__` | 262, 317 | 公証済みDMGの公開URL |
+| プレースホルダ | 入れた値 |
+|---|---|
+| `__POLAR_CHECKOUT_URL__`（2箇所） | `https://buy.polar.sh/polar_cl_iUxD54IxQTe3c47adVIaG0EyfUutyG3fmJkzN0kxyRB`（= `Config/Release.xcconfig` と同一） |
+| `__DMG_DOWNLOAD_URL__`（2箇所） | `https://github.com/entaku0818/Hotbar/releases/download/v1.1.0/Hotbar-1.1.0.dmg` |
 
-```bash
-cd ~/repository/Hotbar-landing
-sed -i '' 's|__POLAR_CHECKOUT_URL__|https://buy.polar.sh/XXXX|g; s|__DMG_DOWNLOAD_URL__|https://XXXX/Hotbar-1.1.0.dmg|g' public/index.html
-grep -c '__' public/index.html      # 0 になること
-```
+Checkout URL はアプリ内購入導線と同じ値なので、**Release.xcconfig を変えたらランディングも一緒に直すこと**。
+DMG URL はバージョン固定なので、v1.1.1 を出したらここも上げる（`releases/latest/download/` に
+しなかったのは、公証済みでない中間リリースを踏ませないため）。
 
 スクリーンショットも入れる:
 
