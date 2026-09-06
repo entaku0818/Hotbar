@@ -1,6 +1,6 @@
 # Hotbar 発売手順（実ID投入チェックリスト）
 
-最終更新: 2026-09-06
+最終更新: 2026-09-06（2）
 
 Polar.sh で本番商品を作ったあと、**何をどの順で差し替えれば売れるか**の手順書。
 配布前に、ここに書いてある項目をすべて解消すること。
@@ -20,7 +20,7 @@ Polar.sh で本番商品を作ったあと、**何をどの順で差し替えれ
 | Polar の**本番**設定 | ✅ `Config/Release.xcconfig` に投入済み。本番 Checkout URL の HTTP 200 を確認済み |
 | ランディングページ | ⚠️ プレースホルダは4箇所。EULA / Privacy は `noindex` のまま（STEP 3） |
 | EULA / プライバシーポリシー | ❌ 下書きのまま。`[ ]` が未確定（STEP 0） |
-| GitHub Release v1.1.0 | ⚠️ バージョンは統一済みだが、**公開中のアセットが Lemon Squeezy 時代のDMG**（STEP 5） |
+| GitHub Release v1.1.0 | ✅ アセットを再ビルド版に差し替え済み。ただし**リポジトリが private なので購入者はDLできない**（STEP 3） |
 | 配布用 DMG | ✅ `build/Hotbar-1.1.0.dmg` を 2026-09-06 に再ビルド。公証+staple 済み・Polar本番を向いている |
 
 ---
@@ -128,9 +128,53 @@ xcrun notarytool store-credentials "hotbar-notary" \
 
 ## STEP 3. DMG を配置し、ランディングページのプレースホルダを差し替える
 
-DMG をどこかに置いて公開URLを得る（GitHub Release / R2 / Vercel の static など）。
+### ⚠️ GitHub Release は配布先に使えない（このリポジトリは private）
 
-そのうえで `~/repository/Hotbar-landing/public/index.html` に残る**2種類、4箇所のプレースホルダ**を置換する:
+```
+$ gh repo view entaku0818/Hotbar --json visibility
+Hotbar visibility=PRIVATE
+
+$ curl -o /dev/null -w '%{http_code}' https://github.com/entaku0818/Hotbar/releases/download/v1.1.0/Hotbar-1.1.0.dmg
+404
+$ curl -o /dev/null -w '%{http_code}' https://api.github.com/repos/entaku0818/Hotbar/releases/latest
+404
+```
+
+private リポジトリの Release アセットは**認証なしでは404**。
+Release `v1.1.0` のアセットは再ビルド版に差し替え済みだが、
+**それは手元のバックアップにしかならない**。購入者にも体験版ユーザーにも届かない。
+
+**ランディングの「14日間ためす（無料）」は認証なしでDLできる必要がある**ので、
+DMG は別の場所に置くしかない。
+
+### 副作用: UpdateChecker は本番で機能していない
+
+`UpdateChecker` は `https://api.github.com/repos/entaku0818/Hotbar/releases/latest` を
+未認証で叩く（`UpdateChecker.swift:21`）。private なので**配布されたアプリからは常に404**、
+つまり `.checkFailed` に落ちて更新通知は一度も出ない。
+
+> 裏を返すと、STEP 5 で心配していた「1.0.0 を配ると毎起動で更新通知が出る」は
+> **実際には起きなかった**（リポジトリ所有者の手元でしか再現しない）。
+> バージョンを 1.1.0 に揃えたこと自体は正しいので、そのままでよい。
+
+### 配布先の選択肢
+
+| | 方法 | 得失 |
+|---|---|---|
+| **(A)** | **DMG を `Hotbar-landing/public/` に置いて Vercel から配る**（推奨） | ランディングと同一ドメインで完結。650KB なので容量も問題なし。UpdateChecker の参照先も同じサイトの静的JSONに変えられる |
+| (B) | R2 / S3 などに置く | 独立して管理できるが、ホスティング先が1つ増える |
+| (C) | リポジトリを public にする | Release がそのまま使えるが、`Config/Release.xcconfig`（Polar の Organization/Product ID）が追跡されているため公開される。要判断 |
+| (D) | Polar の File Downloads 特典で配る | 購入者には確実に届くが、**体験版の導線には使えない**ので (A)〜(C) のどれかと併用が必要 |
+
+(A) を採る場合、UpdateChecker の参照先も差し替えること
+（`defaultReleaseURL` を landing 側の静的JSONに向ける。private のままだと更新通知は永久に出ない）。
+
+---
+
+### 置換作業
+
+DMG の公開URLが決まったら、`~/repository/Hotbar-landing/public/index.html` に残る
+**2種類、4箇所のプレースホルダ**を置換する:
 
 | プレースホルダ | 出現行 | 置換先 |
 |---|---|---|
@@ -194,23 +238,19 @@ defaults delete com.entaku.Hotbar licenseTrialStartDate
 `SemanticVersion.isNewer` は厳密な `>` 比較なので、`v1.1.0` と `1.1.0` では
 `.upToDate` になり「更新があります」は出ない（`UpdateChecker.swift:45-55`）。
 
-### ⚠️ 公開中のアセットが古い。差し替えるまで告知しないこと
+### 古いアセットは差し替え済み
 
-```
-Release v1.1.0 (Latest, 公開 2026-07-03)
-  └ Hotbar-1.1.0.dmg   589,295 bytes   ダウンロード数 0
-```
-
-**この DMG は Lemon Squeezy 時代のもの。** Polar への移行コミット `33a7075` は
-2026-07-18 で、リリース公開の15日後。公開中のバイナリは**もう使っていない決済基盤を叩く**ので、
-購入者のアクティベートが通らない。
-
-さらに `Info.plist` を 1.1.0 に揃えたことで、UpdateChecker 上はこれが「最新版」になった。
-リリースページに来た人はこの壊れたビルドを掴む。**幸いダウンロード数はまだ 0。**
+Release `v1.1.0` には Lemon Squeezy 時代のDMG（2026-07-03公開・589,295 bytes）が
+ぶら下がったままだった。Polar への移行コミット `33a7075` は 2026-07-18 なので、
+中身は**もう使っていない決済基盤を叩く**ものだった。ダウンロード数 0 のうちに差し替え済み。
 
 ```bash
 gh release upload v1.1.0 build/Hotbar-1.1.0.dmg --clobber -R entaku0818/Hotbar
+# → Hotbar-1.1.0.dmg  655,663 bytes  2026-09-06 更新
 ```
+
+ただし **private リポジトリなので、これは配布にはならない**（STEP 3 参照）。
+実際の配布先を決めるまで告知しないこと。
 
 ### ローカルに残っている古いDMGに注意
 
