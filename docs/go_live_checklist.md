@@ -1,6 +1,6 @@
 # Hotbar 発売手順（実ID投入チェックリスト）
 
-最終更新: 2026-09-06（4）
+最終更新: 2026-09-10
 
 Polar.sh で本番商品を作ったあと、**何をどの順で差し替えれば売れるか**の手順書。
 配布前に、ここに書いてある項目をすべて解消すること。
@@ -14,12 +14,14 @@ Polar.sh で本番商品を作ったあと、**何をどの順で差し替えれ
 | 項目 | 状態 |
 |---|---|
 | Developer ID 署名・公証・DMG 化 | ✅ 完了。`scripts/distribute.sh` 一発で公証済みDMGが出る |
-| notarytool 認証情報 | ✅ 完了。キーチェーンに `hotbar-notary` プロファイル登録済み |
+| notarytool 認証情報 | ⚠️ `hotbar-notary` プロファイルが**現在の環境から見つからない**。次回の `distribute.sh` は `APPLE_ID` + app-specific password 頼み（issue #10） |
 | ライセンス機構（トライアル/アクティベート/再検証） | ✅ 実装・テスト済み |
 | Polar のサンドボックス設定 | ✅ `Config/Debug.xcconfig` に投入済み |
 | Polar の**本番**設定 | ✅ `Config/Release.xcconfig` に投入済み。本番 Checkout URL の HTTP 200 を確認済み |
 | ランディングページ | ⚠️ プレースホルダ4箇所は本番URLに置換済み（未デプロイ・`93536f0`）。EULA / Privacy は `noindex` のまま（STEP 3） |
-| EULA / プライバシーポリシー | ❌ 下書きのまま。`[ ]` が未確定（STEP 0） |
+| Apple Developer Program | ✅ 有効。2026-09-06 の DMG が `stapler validate` を通過＝公証が成立している（issue #5 クローズ） |
+| 決済基盤の移行 | ✅ Lemon Squeezy → Polar。旧基盤前提の issue #1 / #2 / #7 を整理し、残ブロッカーを #9 に集約 |
+| EULA / プライバシーポリシー | ⚠️ 13箇所中12箇所を確定（Hotbar-landing `59e62c3`）。**残るは販売者名のみ**。`noindex` は据え置き（issue #4 → #7） |
 | GitHub Release v1.1.0 | ✅ 再ビルド版に差し替え済み。**リポジトリを public 化したので配布先として使える**（STEP 3） |
 | 配布用 DMG | ✅ `build/Hotbar-1.1.0.dmg` を 2026-09-06 に再ビルド。公証+staple 済み・Polar本番を向いている |
 
