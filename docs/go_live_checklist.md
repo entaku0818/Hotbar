@@ -14,7 +14,7 @@ Polar.sh で本番商品を作ったあと、**何をどの順で差し替えれ
 | 項目 | 状態 |
 |---|---|
 | Developer ID 署名・公証・DMG 化 | ✅ 完了。`scripts/distribute.sh` 一発で公証済みDMGが出る |
-| notarytool 認証情報 | ✅ `hotbar-notary` プロファイルは**生きている**（2026-09-13 に `notarytool history` が成功）。ただし **サンドボックス下のシェルからはキーチェーンが読めず失敗する** — issue #10 はその誤検知だった |
+| notarytool 認証情報 | ⚠️ `hotbar-notary` プロファイルは生きているが、**画面ロック中は読めない**。`distribute.sh` は画面を解除した状態で実行すること（issue #10） |
 | ライセンス機構（トライアル/アクティベート/再検証） | ✅ 実装・テスト済み |
 | Polar のサンドボックス設定 | ✅ `Config/Debug.xcconfig` に投入済み |
 | Polar の**本番**設定 | 🔴 ID は `Config/Release.xcconfig` に投入済みで価格も ¥1,500 one_time で正しいが、**License Key benefit が未設定（`benefits: []`）＝買ってもキーが出ない**。さらに組織の事業者情報が未提出（`details_submitted_at: null`）で Payout も未完（issue #9） |
@@ -156,13 +156,34 @@ The validate action worked!
 
 キーチェーンに `hotbar-notary` プロファイルが登録済みなので、通常は何も要らない。
 
-> **注意: サンドボックス下では見えない。**
-> notarytool はプロファイルを data-protection keychain に置くため、
-> `security dump-keychain | grep notary` には**出てこないのが正常**。存在確認は必ず
-> `xcrun notarytool history --keychain-profile hotbar-notary` で行うこと。
-> また、サンドボックス付きのシェル（エージェントの既定実行環境など）ではキーチェーンに
-> アクセスできず `No Keychain password item found` になる。`distribute.sh` は
-> **サンドボックスなしのシェルから実行すること**。
+> **注意: 画面ロック中は読めない。**
+> notarytool はプロファイルを data-protection keychain に置く。これは
+> **セッションのロック解除に紐づく**ため、画面がロックされていると
+> `Error: No Keychain password item found for profile: hotbar-notary` になり、
+> `distribute.sh` は認証情報なしと判断して止まる。
+>
+> 2026-09-13 に同一シェルで再現した:
+>
+> ```
+> 14:40 画面ロック解除中  → notarytool history … Successfully received submission history.
+> 17:15 画面ロック中      → notarytool history … Error: No Keychain password item found
+> $ ioreg -n Root -d1 -a | grep -A1 CGSSessionScreenIsLocked
+> <key>CGSSessionScreenIsLocked</key><true/>
+> $ security show-keychain-info ~/Library/Keychains/login.keychain-db
+> Keychain "…/login.keychain-db" no-timeout      ← ログインキーチェーンの自動ロックではない
+> ```
+>
+> **したがって `distribute.sh` は画面を解除した状態で実行すること。**
+> 席を外す前提の夜間ループには乗らない。無人で回すなら下の env 方式を使う:
+>
+> ```bash
+> export APPLE_ID=<apple-id>
+> export NOTARYTOOL_PASSWORD=<app-specific-password>
+> ./scripts/distribute.sh
+> ```
+>
+> なお `security dump-keychain | grep notary` に**出てこないのは正常**（別のキーチェーン）。
+> 存在確認は必ず `xcrun notarytool history --keychain-profile hotbar-notary` で行うこと。
 
 別のMacでやる場合は先に一度だけ:
 
