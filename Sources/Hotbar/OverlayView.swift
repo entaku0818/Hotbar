@@ -157,13 +157,13 @@ struct WindowCell: View {
                 if let thumbnail = window.thumbnail {
                     Image(nsImage: thumbnail)
                         .resizable()
-                        .aspectRatio(contentMode: .fit)
+                        .scaledToFit()
                         .clipShape(RoundedRectangle(cornerRadius: 8))
                         .padding(6)
                 } else if let icon = window.appIcon {
                     Image(nsImage: icon)
                         .resizable()
-                        .aspectRatio(contentMode: .fit)
+                        .scaledToFit()
                         .frame(width: 48, height: 48)
                 } else {
                     Image(systemName: "app.fill")
@@ -265,7 +265,7 @@ struct HotbarSlot: View {
                 if let icon = window?.appIcon {
                     Image(nsImage: icon)
                         .resizable()
-                        .aspectRatio(contentMode: .fit)
+                        .scaledToFit()
                         .frame(width: 32, height: 32)
                 } else if window != nil {
                     Image(systemName: "app.fill")
