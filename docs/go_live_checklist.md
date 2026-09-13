@@ -1,6 +1,6 @@
 # Hotbar 発売手順（実ID投入チェックリスト）
 
-最終更新: 2026-09-10
+最終更新: 2026-09-13
 
 Polar.sh で本番商品を作ったあと、**何をどの順で差し替えれば売れるか**の手順書。
 配布前に、ここに書いてある項目をすべて解消すること。
@@ -14,11 +14,11 @@ Polar.sh で本番商品を作ったあと、**何をどの順で差し替えれ
 | 項目 | 状態 |
 |---|---|
 | Developer ID 署名・公証・DMG 化 | ✅ 完了。`scripts/distribute.sh` 一発で公証済みDMGが出る |
-| notarytool 認証情報 | ⚠️ `hotbar-notary` プロファイルが**現在の環境から見つからない**。次回の `distribute.sh` は `APPLE_ID` + app-specific password 頼み（issue #10） |
+| notarytool 認証情報 | ✅ `hotbar-notary` プロファイルは**生きている**（2026-09-13 に `notarytool history` が成功）。ただし **サンドボックス下のシェルからはキーチェーンが読めず失敗する** — issue #10 はその誤検知だった |
 | ライセンス機構（トライアル/アクティベート/再検証） | ✅ 実装・テスト済み |
 | Polar のサンドボックス設定 | ✅ `Config/Debug.xcconfig` に投入済み |
 | Polar の**本番**設定 | ✅ `Config/Release.xcconfig` に投入済み。本番 Checkout URL の HTTP 200 を確認済み |
-| ランディングページ | ⚠️ プレースホルダ4箇所は本番URLに置換済み（未デプロイ・`93536f0`）。EULA / Privacy は `noindex` のまま（STEP 3） |
+| ランディングページ | 🔴 **本番に反映されていない**。`hotbar-landing.vercel.app` が配信しているのは購入導線が入る前の旧ビルドで、リンクは GitHub 3本のみ・`/eula.html` と `/privacy.html` は **404**。ローカルの `93536f0` / `59e62c3` が未デプロイ（STEP 3） |
 | Apple Developer Program | ✅ 有効。2026-09-06 の DMG が `stapler validate` を通過＝公証が成立している（issue #5 クローズ） |
 | 決済基盤の移行 | ✅ Lemon Squeezy → Polar。旧基盤前提の issue #1 / #2 / #7 を整理し、残ブロッカーを #9 に集約 |
 | EULA / プライバシーポリシー | ⚠️ 13箇所中12箇所を確定（Hotbar-landing `59e62c3`）。**残るは販売者名のみ**。`noindex` は据え置き（issue #4 → #7） |
@@ -29,18 +29,26 @@ Polar.sh で本番商品を作ったあと、**何をどの順で差し替えれ
 
 ## STEP 0. 先に決めないといけないこと（コード作業ではない）
 
-`docs/eula_draft.md` と `docs/privacy_draft.md` の `[ ]` を埋める。埋まっていない項目:
+> **規約の正本は `~/repository/Hotbar-landing/public/eula.html` / `privacy.html`。**
+> `docs/eula_draft.md` / `docs/privacy_draft.md` は移行前の下書きで、**もう更新されていない**。
+> 参照しないこと（Hotbar-landing `59e62c3` で 13箇所中12箇所を確定済み）。
+
+確定済み（`59e62c3`）:
+
+| 項目 | 入れた値 |
+|---|---|
+| 連絡先（4箇所） | entaku19890818@gmail.com |
+| 準拠法 | 日本法 |
+| ライセンス台数 | 購入者本人が所有・管理するMacであれば台数無制限 |
+| サポート窓口 | GitHub Issues + メール |
+| 対応OS | macOS 13.0 以降（`MACOSX_DEPLOYMENT_TARGET=13.0` で裏取り済み） |
+| 返金 | 購入から14日以内・理由を問わず全額 |
+
+**残り1箇所（本人にしか決められない）:**
 
 | ファイル:行 | 決めること |
 |---|---|
-| `docs/eula_draft.md:7` | 販売者名（個人事業主名 or 屋号） |
-| `docs/eula_draft.md:15` | ライセンス台数（例: 台数無制限 / 3台まで） |
-| `docs/eula_draft.md:36` | 返金連絡先（候補: entaku19890818@gmail.com） |
-| `docs/eula_draft.md:45` | サポート窓口（GitHub Issues はリポジトリが private なので購入者からは見えない。メール推奨） |
-| `docs/eula_draft.md:54` | 準拠法域（例: 日本法） |
-| `docs/eula_draft.md:58` | 問い合わせ先 |
-| `docs/privacy_draft.md:15` | クラッシュレポートを入れるかどうか（現状は未実装のままでよい） |
-| `docs/privacy_draft.md:40` | 問い合わせメールアドレス |
+| `Hotbar-landing/public/eula.html:37` | **販売者名**（個人事業主名 or 屋号） |
 
 **プライバシーポリシーの事実確認**: 実装は
 **Mac のホスト名を送っている**。`LicenseManager.activate()` の既定引数が
@@ -49,8 +57,9 @@ Polar.sh で本番商品を作ったあと、**何をどの順で差し替えれ
 「〜のMacBook Pro」のように本名が入りうる。`docs/privacy_draft.md:36` には「ライセンスキーとデバイス名
 （ホスト名）を送信します」と断定形で記載済み。
 
-埋めたら `~/repository/Hotbar-landing/public/eula.html` と `privacy.html` を再生成する
-（両ファイル冒頭の警告バナーと `<meta name="robots" content="noindex">` を外すのを忘れずに）。
+販売者名が決まったら `eula.html` の1箇所を置換し、**両ファイルから**
+`<meta name="robots" content="noindex">` と冒頭の `<div class="draft">` バナー・
+`<blockquote>` 注記を外して、`vercel deploy --prod` する（issue #4 → #7）。
 
 **ライセンス台数はコードに影響する。** 現在の実装は Polar の activation
 （1インストール = 1 activation）に任せていて、アプリ側で台数を数えていない。
@@ -118,6 +127,15 @@ The validate action worked!
 ### 認証情報について
 
 キーチェーンに `hotbar-notary` プロファイルが登録済みなので、通常は何も要らない。
+
+> **注意: サンドボックス下では見えない。**
+> notarytool はプロファイルを data-protection keychain に置くため、
+> `security dump-keychain | grep notary` には**出てこないのが正常**。存在確認は必ず
+> `xcrun notarytool history --keychain-profile hotbar-notary` で行うこと。
+> また、サンドボックス付きのシェル（エージェントの既定実行環境など）ではキーチェーンに
+> アクセスできず `No Keychain password item found` になる。`distribute.sh` は
+> **サンドボックスなしのシェルから実行すること**。
+
 別のMacでやる場合は先に一度だけ:
 
 ```bash
@@ -175,7 +193,27 @@ public 化で解消。
 
 ---
 
-### 置換作業 — ✅ 完了（2026-09-06, Hotbar-landing `93536f0`）
+### 置換作業 — ✅ ローカルは完了（2026-09-06, Hotbar-landing `93536f0`）／🔴 **本番未反映**
+
+> **2026-09-13 確認: この置換はまだ世に出ていない。**
+> 本番 `https://hotbar-landing.vercel.app/` が返すのは購入導線が入る前の旧ビルドで、
+> ページ内のリンクは GitHub の3本（repo / issues / releases）だけ。
+> `buy.polar.sh` も DMG の直リンクも**存在せず、/eula.html と /privacy.html は 404**。
+>
+> ```
+> $ curl -s https://hotbar-landing.vercel.app/ | grep -oE 'href="[^"]*"' | sort -u
+> href="/icon.png"
+> href="https://github.com/entaku0818/Hotbar"
+> href="https://github.com/entaku0818/Hotbar/issues"
+> href="https://github.com/entaku0818/Hotbar/releases"
+> $ curl -s -o /dev/null -w '%{http_code}' https://hotbar-landing.vercel.app/eula.html
+> 404
+> ```
+>
+> **つまり Polar の設定がどれだけ正しくても、いま買える人は誰もいない。**
+> `vercel deploy --prod` が一度も走っていないのが原因（ローカル `93536f0` / `59e62c3` が未デプロイ）。
+> ただし規約が下書きのままなので、**販売者名の確定 → noindex 解除 → デプロイ**の順で行うこと。
+
 
 `~/repository/Hotbar-landing/public/index.html` の**2種類、4箇所**を実URLに置換済み。
 残プレースホルダは 0、両URLとも HTTP 200 を確認済み。目印の `<!-- PLACEHOLDER -->` コメントも除去した。
