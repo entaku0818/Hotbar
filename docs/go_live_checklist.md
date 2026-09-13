@@ -17,7 +17,7 @@ Polar.sh で本番商品を作ったあと、**何をどの順で差し替えれ
 | notarytool 認証情報 | ✅ `hotbar-notary` プロファイルは**生きている**（2026-09-13 に `notarytool history` が成功）。ただし **サンドボックス下のシェルからはキーチェーンが読めず失敗する** — issue #10 はその誤検知だった |
 | ライセンス機構（トライアル/アクティベート/再検証） | ✅ 実装・テスト済み |
 | Polar のサンドボックス設定 | ✅ `Config/Debug.xcconfig` に投入済み |
-| Polar の**本番**設定 | ✅ `Config/Release.xcconfig` に投入済み。本番 Checkout URL の HTTP 200 を確認済み |
+| Polar の**本番**設定 | 🔴 ID は `Config/Release.xcconfig` に投入済みで価格も ¥1,500 one_time で正しいが、**License Key benefit が未設定（`benefits: []`）＝買ってもキーが出ない**。さらに組織の事業者情報が未提出（`details_submitted_at: null`）で Payout も未完（issue #9） |
 | ランディングページ | 🔴 **本番に反映されていない**。`hotbar-landing.vercel.app` が配信しているのは購入導線が入る前の旧ビルドで、リンクは GitHub 3本のみ・`/eula.html` と `/privacy.html` は **404**。ローカルの `93536f0` / `59e62c3` が未デプロイ（STEP 3） |
 | Apple Developer Program | ✅ 有効。2026-09-06 の DMG が `stapler validate` を通過＝公証が成立している（issue #5 クローズ） |
 | 決済基盤の移行 | ✅ Lemon Squeezy → Polar。旧基盤前提の issue #1 / #2 / #7 を整理し、残ブロッカーを #9 に集約 |
@@ -79,6 +79,24 @@ Config/Release.xcconfig:5   POLAR_PRODUCT_ID      = <本番の Product ID>
 Config/Release.xcconfig:6   POLAR_CHECKOUT_URL    = <本番の Checkout Link>
 Config/Release.xcconfig:7   POLAR_API_BASE_URL    = https://api.polar.sh/v1
 ```
+
+### 2026-09-13 実測: 何が設定済みで、何が未設定か
+
+本番 Checkout Link が返す公開ペイロード（`curl -sL <Checkout URL>`）から直接読めた:
+
+| 項目 | 実測値 | 判定 |
+|---|---|---|
+| 価格 | `type: one_time` / `price_currency: jpy` / `price_amount: 1500` / `tax_behavior: inclusive` | ✅ |
+| サブスクか | `is_recurring: false` | ✅ |
+| License Key benefit | `benefits: []`（2箇所の product 表現とも空）。ペイロード全体の `license` 検索もヒット0件 | 🔴 **未設定** |
+| 組織 | `name: "Hotbar"` / `status: "created"` / `details_submitted_at: null` | 🔴 **事業者情報未提出＝Payout 不可** |
+
+> **USD 価格が併存している。** `prices` に 2026-07-17 作成の `$9.99`（usd/999）が残っており、
+> 2026-09-05 追加の JPY ¥1,500 と2本立て。現在の Checkout は JPY を選んでいるので実害はないが、
+> 規約は「¥1,500」としか書いていないので、表記を揃えるか USD 価格を archive すること。
+
+この3つを調べるのに**ダッシュボードへのログインは不要**（上の curl だけで分かる）。
+設定を変えたあとの答え合わせも同じ方法でできる。
 
 注意点:
 
