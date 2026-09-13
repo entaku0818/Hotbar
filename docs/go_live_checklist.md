@@ -221,26 +221,26 @@ public 化で解消。
 
 ---
 
-### 置換作業 — ✅ ローカルは完了（2026-09-06, Hotbar-landing `93536f0`）／🔴 **本番未反映**
+### 置換作業 — ✅ 完了・本番反映済み（2026-09-13, Hotbar-landing `ac8f551`）
 
-> **2026-09-13 確認: この置換はまだ世に出ていない。**
-> 本番 `https://hotbar-landing.vercel.app/` が返すのは購入導線が入る前の旧ビルドで、
-> ページ内のリンクは GitHub の3本（repo / issues / releases）だけ。
-> `buy.polar.sh` も DMG の直リンクも**存在せず、/eula.html と /privacy.html は 404**。
+> **2026-09-13 に `vercel deploy --prod` を実行し、本番へ出た。**
+> それまで本番は購入導線が入る前の旧ビルドで、`/eula.html` は 404 だった（issue #11）。
 >
 > ```
 > $ curl -s https://hotbar-landing.vercel.app/ | grep -oE 'href="[^"]*"' | sort -u
+> href="/eula.html"
 > href="/icon.png"
-> href="https://github.com/entaku0818/Hotbar"
-> href="https://github.com/entaku0818/Hotbar/issues"
-> href="https://github.com/entaku0818/Hotbar/releases"
+> href="/privacy.html"
+> href="https://buy.polar.sh/polar_cl_..."
+> href="https://github.com/entaku0818/Hotbar/releases/download/v1.1.0/Hotbar-1.1.0.dmg"
+> href="mailto:entaku19890818@gmail.com"
 > $ curl -s -o /dev/null -w '%{http_code}' https://hotbar-landing.vercel.app/eula.html
-> 404
+> 200
 > ```
 >
-> **つまり Polar の設定がどれだけ正しくても、いま買える人は誰もいない。**
-> `vercel deploy --prod` が一度も走っていないのが原因（ローカル `93536f0` / `59e62c3` が未デプロイ）。
-> ただし規約が下書きのままなので、**販売者名の確定 → noindex 解除 → デプロイ**の順で行うこと。
+> **教訓: コミットしただけでは世に出ない。** ランディングを触ったら必ず本番URLを
+> `curl` で叩いて確認すること。手順書が「✅ 完了」と書いていたのはローカルの話で、
+> 実際には購入導線の無い旧ビルドを配信し続けていた。
 
 
 `~/repository/Hotbar-landing/public/index.html` の**2種類、4箇所**を実URLに置換済み。
