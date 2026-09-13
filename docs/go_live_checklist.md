@@ -18,10 +18,10 @@ Polar.sh で本番商品を作ったあと、**何をどの順で差し替えれ
 | ライセンス機構（トライアル/アクティベート/再検証） | ✅ 実装・テスト済み |
 | Polar のサンドボックス設定 | ✅ `Config/Debug.xcconfig` に投入済み |
 | Polar の**本番**設定 | 🔴 ID は `Config/Release.xcconfig` に投入済みで価格も ¥1,500 one_time で正しいが、**License Key benefit が未設定（`benefits: []`）＝買ってもキーが出ない**。さらに組織の事業者情報が未提出（`details_submitted_at: null`）で Payout も未完（issue #9） |
-| ランディングページ | 🔴 **本番に反映されていない**。`hotbar-landing.vercel.app` が配信しているのは購入導線が入る前の旧ビルドで、リンクは GitHub 3本のみ・`/eula.html` と `/privacy.html` は **404**。ローカルの `93536f0` / `59e62c3` が未デプロイ（STEP 3） |
+| ランディングページ | ✅ 2026-09-13 に `vercel deploy --prod` 済み。Checkout リンク・DMG リンク・規約2ページとも本番で HTTP 200（issue #11 クローズ）。`public/shot-overlay.png` のみ未設置 |
 | Apple Developer Program | ✅ 有効。2026-09-06 の DMG が `stapler validate` を通過＝公証が成立している（issue #5 クローズ） |
 | 決済基盤の移行 | ✅ Lemon Squeezy → Polar。旧基盤前提の issue #1 / #2 / #7 を整理し、残ブロッカーを #9 に集約 |
-| EULA / プライバシーポリシー | ⚠️ 13箇所中12箇所を確定（Hotbar-landing `59e62c3`）。**残るは販売者名のみ**。`noindex` は据え置き（issue #4 → #7） |
+| EULA / プライバシーポリシー | ✅ 全13箇所確定。販売者名は **遠藤 拓也**（Developer ID の登録名 `Takuya Endo` に準拠）。`noindex` と下書きバナーを除去して公開済み（issue #4 / #7 クローズ・`ac8f551`） |
 | GitHub Release v1.1.0 | ✅ 再ビルド版に差し替え済み。**リポジトリを public 化したので配布先として使える**（STEP 3） |
 | 配布用 DMG | ✅ `build/Hotbar-1.1.0.dmg` を 2026-09-06 に再ビルド。公証+staple 済み・Polar本番を向いている |
 
@@ -44,11 +44,22 @@ Polar.sh で本番商品を作ったあと、**何をどの順で差し替えれ
 | 対応OS | macOS 13.0 以降（`MACOSX_DEPLOYMENT_TARGET=13.0` で裏取り済み） |
 | 返金 | 購入から14日以内・理由を問わず全額 |
 
-**残り1箇所（本人にしか決められない）:**
+**販売者名も確定済み（2026-09-13）: 遠藤 拓也**
 
-| ファイル:行 | 決めること |
-|---|---|
-| `Hotbar-landing/public/eula.html:37` | **販売者名**（個人事業主名 or 屋号） |
+Apple Developer Program の登録名に揃えた。個人加入は実名登録なので、これが法的な氏名にあたる。
+
+```
+$ spctl --assess --type exec -vv <Hotbar.app>
+origin=Developer ID Application: Takuya Endo (4YZQY4C47E)
+```
+
+Polar の Account details（STEP 1 ③）を提出するときも**同じ名前を入れること。**
+領収書の発行元と規約の表記がズレる。
+
+> Polar の `organization.name` は `"Hotbar"` で製品名と同じだった。これを販売者名にすると
+> 「Hotbar（以下「開発者」）が提供するmacOSアプリケーション「Hotbar」」となり成立しないため不採用。
+
+**STEP 0 に残っている作業はない。**
 
 **プライバシーポリシーの事実確認**: 実装は
 **Mac のホスト名を送っている**。`LicenseManager.activate()` の既定引数が
@@ -57,9 +68,8 @@ Polar.sh で本番商品を作ったあと、**何をどの順で差し替えれ
 「〜のMacBook Pro」のように本名が入りうる。`docs/privacy_draft.md:36` には「ライセンスキーとデバイス名
 （ホスト名）を送信します」と断定形で記載済み。
 
-販売者名が決まったら `eula.html` の1箇所を置換し、**両ファイルから**
-`<meta name="robots" content="noindex">` と冒頭の `<div class="draft">` バナー・
-`<blockquote>` 注記を外して、`vercel deploy --prod` する（issue #4 → #7）。
+（実施済み。`eula.html` の販売者名を置換し、両ファイルから `noindex`・`<div class="draft">` バナー・
+`<blockquote>` 注記を除去してデプロイ済み。Hotbar-landing `ac8f551`）
 
 **ライセンス台数はコードに影響する。** 現在の実装は Polar の activation
 （1インストール = 1 activation）に任せていて、アプリ側で台数を数えていない。
