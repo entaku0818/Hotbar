@@ -1,6 +1,6 @@
 # Hotbar 発売手順（実ID投入チェックリスト）
 
-最終更新: 2026-09-13
+最終更新: 2026-09-15
 
 Polar.sh で本番商品を作ったあと、**何をどの順で差し替えれば売れるか**の手順書。
 配布前に、ここに書いてある項目をすべて解消すること。
@@ -23,7 +23,7 @@ Polar.sh で本番商品を作ったあと、**何をどの順で差し替えれ
 | 決済基盤の移行 | ✅ Lemon Squeezy → Polar。旧基盤前提の issue #1 / #2 / #7 を整理し、残ブロッカーを #9 に集約 |
 | EULA / プライバシーポリシー | ✅ 全13箇所確定。販売者名は **遠藤 拓也**（Developer ID の登録名 `Takuya Endo` に準拠）。`noindex` と下書きバナーを除去して公開済み（issue #4 / #7 クローズ・`ac8f551`） |
 | GitHub Release v1.1.0 | ✅ 再ビルド版に差し替え済み。**リポジトリを public 化したので配布先として使える**（STEP 3） |
-| 配布用 DMG | ✅ `build/Hotbar-1.1.0.dmg` を 2026-09-06 に再ビルド。公証+staple 済み・Polar本番を向いている |
+| 配布用 DMG | ✅ `build/Hotbar-1.0.0.dmg` を 2026-09-15 にビルド。`./scripts/verify_dmg.sh` の全項目を通過（公証+staple・Polar本番・licenseLastValidatedAt あり） |
 
 ---
 
@@ -351,11 +351,28 @@ gh release upload v1.1.0 build/Hotbar-1.1.0.dmg --clobber -R entaku0818/Hotbar
 配る DMG が正しいかは、これで確かめられる:
 
 ```bash
-mnt=$(hdiutil attach -nobrowse -readonly build/Hotbar-1.1.0.dmg | grep -o '/Volumes/.*')
-strings "$mnt/Hotbar.app/Contents/MacOS/Hotbar" | grep -c licenseLastValidatedAt  # 0 なら配らない
-strings "$mnt/Hotbar.app/Contents/MacOS/Hotbar" | grep -o 'sandbox-api\.polar\.sh' # 出たら配らない
-hdiutil detach "$mnt"
+./scripts/verify_dmg.sh build/Hotbar-1.0.0.dmg
+# → 最後に「✅ 配って良い」/「🔴 配らないこと」。exit code でも判定できる
 ```
+
+> **2026-09-15 訂正: 以前ここにあった `strings | grep sandbox-api` の検査は無意味だった。**
+> `.app` バンドルでは Polar の設定値は `Contents/Info.plist` にあり、Mach-O には
+> 埋め込まれない（`otool -l` に `__info_plist` セクションが無い）。
+> そのため**サンドボックスを向いた Debug ビルドでも 0件になり、検査は必ず通る**:
+>
+> ```
+> $ defaults read <Debug>/Hotbar.app/Contents/Info.plist PolarAPIBaseURL
+> https://sandbox-api.polar.sh/v1          ← 実際はサンドボックス
+> $ strings <Debug>/Hotbar.app/Contents/MacOS/Hotbar | grep -c sandbox-api
+> 0                                        ← 検査は「問題なし」と言う
+> ```
+>
+> 同様に、バイナリを `grep REPLACE_ME` しても意味がない。`PolarConfig.swift` の
+> フォールバック文字列リテラルを拾うだけで、**設定が正しく入っていても必ずヒットする**。
+>
+> **Polar 設定の判定は `Contents/Info.plist` を読むこと。** `verify_dmg.sh` はそうしている。
+> 一方 `licenseLastValidatedAt` はソースの文字列リテラルなので、`strings` で正しく判定できる
+> （危険版の `Hotbar-1.1.0.dmg.stale-20260829` を実際に弾けることを確認済み）。
 
 ---
 
