@@ -22,7 +22,7 @@ Polar.sh で本番商品を作ったあと、**何をどの順で差し替えれ
 | Apple Developer Program | ✅ 有効。2026-09-06 の DMG が `stapler validate` を通過＝公証が成立している（issue #5 クローズ） |
 | 決済基盤の移行 | ✅ Lemon Squeezy → Polar。旧基盤前提の issue #1 / #2 / #7 を整理し、残ブロッカーを #9 に集約 |
 | EULA / プライバシーポリシー | ✅ 全13箇所確定。販売者名は **遠藤 拓也**（Developer ID の登録名 `Takuya Endo` に準拠）。`noindex` と下書きバナーを除去して公開済み（issue #4 / #7 クローズ・`ac8f551`） |
-| GitHub Release v1.1.0 | ✅ 再ビルド版に差し替え済み。**リポジトリを public 化したので配布先として使える**（STEP 3） |
+| GitHub Release | ✅ **v1.0.0**（2026-09-15）。v1.1.0 はリリースもタグも削除済み。公開URLから DMG が 200 で落ち、ハッシュも手元と一致 |
 | 配布用 DMG | ✅ `build/Hotbar-1.0.0.dmg` を 2026-09-15 にビルド。`./scripts/verify_dmg.sh` の全項目を通過（公証+staple・Polar本番・licenseLastValidatedAt あり） |
 
 ---
@@ -132,7 +132,7 @@ swiftlint lint --strict
 
 ```bash
 cd ~/repository/Hotbar
-./scripts/distribute.sh          # バージョンは Sources/Hotbar/Info.plist から読む
+./scripts/distribute.sh          # バージョンは Sources/Hotbar/Info.plist から読む（現在 1.0.0）
 ```
 
 これ一発で「アーカイブ → Developer ID 署名 → .app を公証・staple → DMG 作成 →
@@ -142,7 +142,7 @@ DMG を署名・公証・staple → 検証」まで通る。所要 5〜7分（Ap
 
 ```
 --- spctl --assess --type exec -vv (app) ---
-/tmp/Hotbar-1.1.0-export/Hotbar.app: accepted
+/tmp/Hotbar-1.0.0-export/Hotbar.app: accepted
 source=Notarized Developer ID
 --- stapler validate (dmg) ---
 The validate action worked!
@@ -197,14 +197,14 @@ xcrun notarytool store-credentials "hotbar-notary" \
 
 ## STEP 3. DMG を配置し、ランディングページのプレースホルダを差し替える
 
-### 配布先: GitHub Release（リポジトリを public 化して確定）
+### 配布先: GitHub Release v1.0.0（リポジトリを public 化して確定）
 
 2026-09-06 にリポジトリを **public** にした。これで Release アセットが
 認証なしでダウンロードできる。
 
 ```
 $ curl -o /dev/null -w '%{http_code}' -L \
-    https://github.com/entaku0818/Hotbar/releases/download/v1.1.0/Hotbar-1.1.0.dmg
+    https://github.com/entaku0818/Hotbar/releases/download/v1.0.0/Hotbar-1.0.0.dmg
 200
 $ curl -o /dev/null -w '%{http_code}' \
     https://api.github.com/repos/entaku0818/Hotbar/releases/latest
@@ -214,10 +214,10 @@ $ curl -o /dev/null -w '%{http_code}' \
 **DMG の公開URL**（ランディングの `__DMG_DOWNLOAD_URL__` に入れる値）:
 
 ```
-https://github.com/entaku0818/Hotbar/releases/download/v1.1.0/Hotbar-1.1.0.dmg
+https://github.com/entaku0818/Hotbar/releases/download/v1.0.0/Hotbar-1.0.0.dmg
 ```
 
-配信されているのが再ビルド版であることは Content-Length で確認済み（655,663 bytes、手元と一致）。
+配信物が手元と同一であることは SHA-256 で確認済み（`a33484ab…`、655,632 bytes）。
 
 #### public 化にあたって確認したこと
 
@@ -253,7 +253,7 @@ public 化で解消。
 > href="/icon.png"
 > href="/privacy.html"
 > href="https://buy.polar.sh/polar_cl_..."
-> href="https://github.com/entaku0818/Hotbar/releases/download/v1.1.0/Hotbar-1.1.0.dmg"
+> href="https://github.com/entaku0818/Hotbar/releases/download/v1.0.0/Hotbar-1.0.0.dmg"
 > href="mailto:entaku19890818@gmail.com"
 > $ curl -s -o /dev/null -w '%{http_code}' https://hotbar-landing.vercel.app/eula.html
 > 200
@@ -269,8 +269,8 @@ public 化で解消。
 
 | プレースホルダ | 入れた値 |
 |---|---|
-| `__POLAR_CHECKOUT_URL__`（2箇所） | `https://buy.polar.sh/polar_cl_iUxD54IxQTe3c47adVIaG0EyfUutyG3fmJkzN0kxyRB`（= `Config/Release.xcconfig` と同一） |
-| `__DMG_DOWNLOAD_URL__`（2箇所） | `https://github.com/entaku0818/Hotbar/releases/download/v1.1.0/Hotbar-1.1.0.dmg` |
+| `__POLAR_CHECKOUT_URL__`（2箇所） | `https://buy.polar.sh/polar_cl_…`（= `Config/Release.xcconfig` と同一） |
+| `__DMG_DOWNLOAD_URL__`（2箇所） | `https://github.com/entaku0818/Hotbar/releases/download/v1.0.0/Hotbar-1.0.0.dmg` |
 
 Checkout URL はアプリ内購入導線と同じ値なので、**Release.xcconfig を変えたらランディングも一緒に直すこと**。
 DMG URL はバージョン固定なので、v1.1.1 を出したらここも上げる（`releases/latest/download/` に
@@ -321,24 +321,36 @@ defaults delete com.entaku.Hotbar licenseTrialStartDate
 
 ## STEP 5. リリース公開
 
-### バージョンの統一は完了している
+### バージョンは 1.0.0 で統一済み（2026-09-15）
 
-`Info.plist` を **1.1.0** に上げて、公開中の Release タグ `v1.1.0` と揃えた（`407be3d`）。
-`SemanticVersion.isNewer` は厳密な `>` 比較なので、`v1.1.0` と `1.1.0` では
-`.upToDate` になり「更新があります」は出ない（`UpdateChecker.swift:45-55`）。
+有料版のファーストリリースを **1.0.0** として採番し直した。1.1.0 は無料配布時代の
+採番で、購入者から見ると「1.0.0 を見たことがないのに 1.1.0」になるため。
 
-### 古いアセットは差し替え済み
-
-Release `v1.1.0` には Lemon Squeezy 時代のDMG（2026-07-03公開・589,295 bytes）が
-ぶら下がったままだった。Polar への移行コミット `33a7075` は 2026-07-18 なので、
-中身は**もう使っていない決済基盤を叩く**ものだった。ダウンロード数 0 のうちに差し替え済み。
+実施したこと:
 
 ```bash
-gh release upload v1.1.0 build/Hotbar-1.1.0.dmg --clobber -R entaku0818/Hotbar
-# → Hotbar-1.1.0.dmg  655,663 bytes  2026-09-06 更新
+# Info.plist を 1.0.0 に（5759c30）→ build / test / lint 緑 → distribute.sh
+gh release delete v1.1.0 -R entaku0818/Hotbar --yes
+git push origin :refs/tags/v1.1.0          # タグも削除（将来 1.1.0 を出すとき衝突するため）
+git tag -a v1.0.0 -m "…" && git push origin v1.0.0
+gh release create v1.0.0 --notes-file … build/Hotbar-1.0.0.dmg
 ```
 
-リポジトリを public 化したので、このアセットがそのまま配布物になる（STEP 3 参照）。
+> 削除前の `v1.1.0` タグは `db2139a`（`chore: bump version to 1.1.0 (build 2)`）を指していた。
+> 復元が必要ならこの SHA に付け直す。アセットのダウンロード数は 3 で、
+> いずれも検証用の `curl` と見られる（実購入者はまだ0）。
+
+**更新通知が出ないことを確認済み。** `UpdateChecker` は GitHub の `releases/latest` と
+比較するので、latest が `v1.0.0` で `Info.plist` も `1.0.0` なら `.upToDate` になる:
+
+```
+latest tag: v1.0.0
+isNewer("v1.0.0", than: "1.0.0") = False   ← 通知は出ない（正常）
+isNewer("v1.1.0", than: "1.0.0") = True    ← v1.1.0 を残していたら毎起動で出ていた
+```
+
+**リリースのたびに `Info.plist` と Release タグを揃えること。** ずれると更新通知が
+出続けるか、逆に出なくなる。
 
 ### ローカルに残っている古いDMGに注意
 
