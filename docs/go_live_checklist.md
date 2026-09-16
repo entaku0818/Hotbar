@@ -1,6 +1,6 @@
 # Hotbar 発売手順（実ID投入チェックリスト）
 
-最終更新: 2026-09-15
+最終更新: 2026-09-16
 
 Polar.sh で本番商品を作ったあと、**何をどの順で差し替えれば売れるか**の手順書。
 配布前に、ここに書いてある項目をすべて解消すること。
@@ -14,7 +14,7 @@ Polar.sh で本番商品を作ったあと、**何をどの順で差し替えれ
 | 項目 | 状態 |
 |---|---|
 | Developer ID 署名・公証・DMG 化 | ✅ 完了。`scripts/distribute.sh` 一発で公証済みDMGが出る |
-| notarytool 認証情報 | ⚠️ `hotbar-notary` プロファイルは生きているが、**画面ロック中は読めない**。`distribute.sh` は画面を解除した状態で実行すること（issue #10） |
+| notarytool 認証情報 | ✅ `hotbar-notary` は生きている。**画面ロック中は読めない**が、`distribute.sh` がそれを検出して正しい対処を案内する（`958fae3`）。無人実行は env 方式（issue #10） |
 | ライセンス機構（トライアル/アクティベート/再検証） | ✅ 実装・テスト済み |
 | Polar のサンドボックス設定 | ✅ `Config/Debug.xcconfig` に投入済み |
 | Polar の**本番**設定 | 🔴 ID は `Config/Release.xcconfig` に投入済みで価格も ¥1,500 one_time で正しいが、**License Key benefit が未設定（`benefits: []`）＝買ってもキーが出ない**。さらに組織の事業者情報が未提出（`details_submitted_at: null`）で Payout も未完（issue #9） |
@@ -174,13 +174,21 @@ The validate action worked!
 > ```
 >
 > **したがって `distribute.sh` は画面を解除した状態で実行すること。**
-> 席を外す前提の夜間ループには乗らない。無人で回すなら下の env 方式を使う:
+> 席を外す前提の夜間ループには乗らない。無人で回すなら env 方式を使う:
 >
 > ```bash
 > export APPLE_ID=<apple-id>
 > export NOTARYTOOL_PASSWORD=<app-specific-password>
 > ./scripts/distribute.sh
 > ```
+>
+> **env 方式がロック中でも通ることは実測済み**（ロック状態で `[1/6] Archiving...` まで進む）。
+>
+> `distribute.sh` は 2026-09-16 以降このロック状態を自分で検出し、
+> 「プロファイルは正常なので `store-credentials` を実行するな」と案内する（`958fae3`）。
+> **以前はここで `store-credentials` を勧めており、実際に issue #10 を
+> 「プロファイル不在」と誤診させた。** エラー文（`No Keychain password item found`）は
+> ロック中と本当の不在で同一なので、文面だけで判断しないこと。
 >
 > なお `security dump-keychain | grep notary` に**出てこないのは正常**（別のキーチェーン）。
 > 存在確認は必ず `xcrun notarytool history --keychain-profile hotbar-notary` で行うこと。
