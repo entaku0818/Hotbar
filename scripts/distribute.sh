@@ -20,7 +20,7 @@
 set -euo pipefail
 
 VERSION="${1:-$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' \
-  "$(pwd)/Sources/Hotbar/Info.plist" 2>/dev/null || echo "1.1.0")}"
+  "$(pwd)/Sources/Hotbar/Info.plist" 2>/dev/null || echo "1.0.0")}"
 SCHEME="Hotbar"
 PROJECT="Hotbar.xcodeproj"
 ARCHIVE_PATH="/tmp/Hotbar-${VERSION}.xcarchive"
@@ -35,18 +35,63 @@ SIGN_ID="${SIGN_ID:-Developer ID Application}"
 # ── notarytool credentials ───────────────────────────────────────────────────
 # Resolve once, up front: a build that silently skips notarization produces an
 # artifact that looks fine locally and fails on every other Mac.
+
+# notarytool keeps its profile in the data-protection keychain, which is tied to
+# the session being UNLOCKED. With the screen locked the probe below fails with
+# "No Keychain password item found" even though the profile exists and is fine.
+# Telling those two cases apart matters: the fix for one is to unlock the screen,
+# the fix for the other is to run store-credentials. Guessing wrong sends you off
+# re-registering credentials that were never missing.
+screen_is_locked() {
+  # The key is absent entirely when unlocked, and <true/> when locked.
+  ioreg -n Root -d1 -a 2>/dev/null \
+    | grep -A1 'CGSSessionScreenIsLocked' \
+    | grep -q '<true/>'
+}
+
 NOTARY_ARGS=()
-if xcrun notarytool history --keychain-profile "${NOTARY_PROFILE}" >/dev/null 2>&1; then
+NOTARY_PROBE_ERR=""
+if NOTARY_PROBE_ERR="$(xcrun notarytool history \
+      --keychain-profile "${NOTARY_PROFILE}" 2>&1 >/dev/null)"; then
   NOTARY_ARGS=(--keychain-profile "${NOTARY_PROFILE}")
   echo "==> notarytool: keychain profile '${NOTARY_PROFILE}'"
 elif [ -n "${APPLE_ID:-}" ] && [ -n "${NOTARYTOOL_PASSWORD:-}" ]; then
   NOTARY_ARGS=(--apple-id "${APPLE_ID}" --password "${NOTARYTOOL_PASSWORD}" --team-id "${TEAM_ID}")
   echo "==> notarytool: APPLE_ID + app-specific password"
+elif screen_is_locked; then
+  cat >&2 <<EOF
+✗ The screen is locked, so the notarytool keychain profile cannot be read.
+
+  notarytool reported:
+    ${NOTARY_PROBE_ERR}
+
+  The profile '${NOTARY_PROFILE}' is almost certainly FINE. Do NOT run
+  store-credentials — notarytool stores it in the data-protection keychain,
+  which is unreadable while the session is locked.
+
+  Fix, pick one:
+
+  a) Unlock the screen and re-run this script. (interactive builds)
+
+  b) Use an app-specific password instead, which works locked. (unattended
+     builds, e.g. a nightly loop — the keychain path cannot work there)
+       export APPLE_ID=<your-apple-id>
+       export NOTARYTOOL_PASSWORD=<app-specific-password>
+       ./scripts/distribute.sh
+
+  Verify the profile once the screen is unlocked with:
+    xcrun notarytool history --keychain-profile ${NOTARY_PROFILE}
+EOF
+  exit 1
 else
   cat >&2 <<EOF
 ✗ No notarytool credentials found.
 
-Set up ONE of these, then re-run:
+  notarytool reported:
+    ${NOTARY_PROBE_ERR}
+
+  The screen is unlocked, so this looks like a genuinely missing profile.
+  Set up ONE of these, then re-run:
 
   a) Keychain profile (preferred):
        xcrun notarytool store-credentials "${NOTARY_PROFILE}" \\
@@ -56,6 +101,9 @@ Set up ONE of these, then re-run:
   b) App-specific password:
        export APPLE_ID=<your-apple-id>
        export NOTARYTOOL_PASSWORD=<app-specific-password>
+
+  Note: 'security dump-keychain | grep notary' finding nothing is NORMAL —
+  notarytool uses a different keychain. Check with 'notarytool history' instead.
 EOF
   exit 1
 fi
