@@ -1,6 +1,6 @@
 # Hotbar 発売手順（実ID投入チェックリスト）
 
-最終更新: 2026-09-16
+最終更新: 2026-10-12
 
 Polar.sh で本番商品を作ったあと、**何をどの順で差し替えれば売れるか**の手順書。
 配布前に、ここに書いてある項目をすべて解消すること。
@@ -17,7 +17,7 @@ Polar.sh で本番商品を作ったあと、**何をどの順で差し替えれ
 | notarytool 認証情報 | ✅ `hotbar-notary` は生きている。**画面ロック中は読めない**が、`distribute.sh` がそれを検出して正しい対処を案内する（`958fae3`）。無人実行は env 方式（issue #10） |
 | ライセンス機構（トライアル/アクティベート/再検証） | ✅ 実装・テスト済み |
 | Polar のサンドボックス設定 | ✅ `Config/Debug.xcconfig` に投入済み |
-| Polar の**本番**設定 | 🔴 ID は `Config/Release.xcconfig` に投入済みで価格も ¥1,500 one_time で正しいが、**License Key benefit が未設定（`benefits: []`）＝買ってもキーが出ない**。さらに組織の事業者情報が未提出（`details_submitted_at: null`）で Payout も未完（issue #9） |
+| Polar の**本番**設定 | 🟡 2026-10-12 実測: ¥1,500 one_time ✅ / License Key benefit（`license_keys`）付与済み ✅ / 組織 `status: active`・事業者情報提出済み（2026-09-23）✅。**Activation limit と Payout（銀行口座）は公開ペイロードに出ないため未確認＝ダッシュボードで本人確認が必要**（issue #9） |
 | ランディングページ | ✅ 2026-09-13 に `vercel deploy --prod` 済み。Checkout リンク・DMG リンク・規約2ページとも本番で HTTP 200（issue #11 クローズ）。`public/shot-overlay.png` のみ未設置 |
 | Apple Developer Program | ✅ 有効。2026-09-06 の DMG が `stapler validate` を通過＝公証が成立している（issue #5 クローズ） |
 | 決済基盤の移行 | ✅ Lemon Squeezy → Polar。旧基盤前提の issue #1 / #2 / #7 を整理し、残ブロッカーを #9 に集約 |
@@ -90,7 +90,17 @@ Config/Release.xcconfig:6   POLAR_CHECKOUT_URL    = <本番の Checkout Link>
 Config/Release.xcconfig:7   POLAR_API_BASE_URL    = https://api.polar.sh/v1
 ```
 
-### 2026-09-13 実測: 何が設定済みで、何が未設定か
+### 2026-10-12 再実測（同じ curl）
+
+| 項目 | 実測値 | 判定 |
+|---|---|---|
+| License Key benefit | `type: "license_keys"` / `description: "Hotbar License Key"`（2026-09-23 更新） | ✅ 付与済み |
+| 組織 | `status: "active"` / `details_submitted_at: 2026-09-23T02:00:07Z` | ✅ 事業者情報提出済み |
+| Activation limit | 公開ペイロードに出ない | ❓ ダッシュボードで確認（EULA「台数無制限」なので上限なし or 十分大きい値） |
+| Payout（銀行口座） | 公開ペイロードに出ない | ❓ ダッシュボード Finance で確認 |
+| USD $9.99 価格 | まだ併存（`is_archived: false`） | 🟡 要判断（下記） |
+
+### 2026-09-13 実測: 何が設定済みで、何が未設定か（当時の記録）
 
 本番 Checkout Link が返す公開ペイロード（`curl -sL <Checkout URL>`）から直接読めた:
 
