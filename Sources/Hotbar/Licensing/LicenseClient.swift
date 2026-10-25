@@ -46,6 +46,8 @@ private struct PolarErrorPayload: Decodable {
 }
 
 final class PolarLicenseClient: LicenseClient {
+    static let unlimitedInstanceID = "polar-unlimited-license"
+
     private let baseURL: URL
     private let organizationID: String
     private let session: URLSession
@@ -68,6 +70,14 @@ final class PolarLicenseClient: LicenseClient {
         ])
 
         guard response.statusCode == 200 else {
+            if errorMessage(from: data).contains("does not support activations") {
+                let validation = try await validate(licenseKey: licenseKey, instanceID: Self.unlimitedInstanceID)
+                return LicenseActivationResponse(
+                    activated: validation.valid,
+                    error: validation.error,
+                    instance: validation.valid ? LicenseInstance(id: Self.unlimitedInstanceID, name: instanceName) : nil
+                )
+            }
             return LicenseActivationResponse(activated: false, error: errorMessage(from: data), instance: nil)
         }
         let payload: PolarActivationPayload = try decode(data)
@@ -79,14 +89,23 @@ final class PolarLicenseClient: LicenseClient {
     }
 
     func validate(licenseKey: String, instanceID: String) async throws -> LicenseValidationResponse {
-        let (data, response) = try await post(path: "customer-portal/license-keys/validate", body: [
-            "key": licenseKey,
-            "organization_id": organizationID,
-            "activation_id": instanceID
-        ])
+        var body = ["key": licenseKey, "organization_id": organizationID]
+        if instanceID != Self.unlimitedInstanceID {
+            body["activation_id"] = instanceID
+        }
+        let (data, response) = try await post(path: "customer-portal/license-keys/validate", body: body)
 
         guard response.statusCode == 200 else {
             return LicenseValidationResponse(valid: false, error: errorMessage(from: data))
+        }
+        // Unlimited keys have no activation ID. Require an explicit unlimited,
+        // granted response so malformed or newly limited keys cannot unlock locally.
+        if instanceID == Self.unlimitedInstanceID {
+            guard let payload = try JSONSerialization.jsonObject(with: data) as? [String: Any],
+                  payload["status"] as? String == "granted",
+                  payload["limit_activations"] is NSNull else {
+                return LicenseValidationResponse(valid: false, error: "This license is not an unlimited active license.")
+            }
         }
         return LicenseValidationResponse(valid: true, error: nil)
     }

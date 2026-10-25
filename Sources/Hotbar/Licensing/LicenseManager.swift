@@ -19,7 +19,7 @@ extension Notification.Name {
 /// Tracks the 14-day free trial and Polar.sh license activation state.
 ///
 /// A stored license key alone does **not** unlock the app. `.licensed`
-/// requires all three of: the key, the activation instance id, and a
+/// requires all three of: the key, an activation ID or validated-unlimited marker, and a
 /// successful server validation within `offlineGracePeriod`. Re-validation
 /// runs at launch (`revalidate()`); if the network is unreachable the last
 /// successful validation carries the user for 14 more days, after which the
@@ -150,7 +150,7 @@ final class LicenseManager: ObservableObject {
     private static func computeStatus(defaults: UserDefaults, now: Date) -> LicenseStatus {
         if let key = defaults.string(forKey: Keys.licenseKey), !key.isEmpty {
             // A key on its own proves nothing — it also needs the activation
-            // id handed back by Polar and a recent successful validation.
+            // id (or validated-unlimited marker) and a recent successful validation.
             let instanceID = defaults.string(forKey: Keys.instanceID)
             let lastValidated = defaults.object(forKey: Keys.lastValidatedAt) as? Date
 
