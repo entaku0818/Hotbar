@@ -7,8 +7,8 @@
 - Chrome拡張で本番の商品編集を実施。JPY 1,500 の通貨設定を外し、USD 9.99 のみを保存。「Product Updated」を確認。
 - 既存の購入リンクから新しい決済画面を開き、日本の購入画面でも $9.99 / Taxes (included) / Total $9.99 と表示されることを確認。実際の支払いは行っていない。
 - Hotbar License Key: Never expires、Activation limit Unlimited、Usage limit Unlimited を確認。
-- Finance → Account: Account approved、Identity verified。Payout Account は未接続で「Continue with Account Setup」が表示される。受取口座の接続はユーザーによる操作が必要。
-- **残り**: 振込先口座の接続、キー発行から認証・解除までの通し検証、販売ページと v1.1.0 DMG の本番公開。下記の過去記録にある未確認項目は、この記録を優先する。
+- Finance → Account: Account approved、Identity verified。ユーザーの設定後、Payout account connected と ready to receive payouts を確認。受取口座接続済み。
+- **残り**: キー発行から認証・解除までの通し検証、販売ページと v1.1.0 DMG の本番公開。下記の過去記録にある未確認項目は、この記録を優先する。
 - 変更確認画像: ローカルの `build/launch-proof/polar-usd-product.png`（Git対象外）。
 
 ## 2026-10-25: USD への価格統一（反映作業中）
