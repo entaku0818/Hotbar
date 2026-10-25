@@ -6,6 +6,7 @@ final class HotbarStore: ObservableObject {
     static let shared = HotbarStore()
 
     @Published var slots: [Int: WindowInfo] = [:]
+    @Published var windowActionMessage: String?
     @Published var windows: [WindowInfo] = []
     @Published var selectedIndex: Int = 0
 
@@ -24,15 +25,18 @@ final class HotbarStore: ObservableObject {
     }
 
     func refreshWindows() {
-        let fetched = Self.applyExclusions(
-            WindowFetcher.fetchAllWindows(),
-            excluded: AppSettings.shared.excludedApps
-        )
+        let settings = AppSettings.shared
+        let allWindows = WindowFetcher.fetchAllWindows()
+        let visible = Self.applyExclusions(allWindows, excluded: settings.excludedApps)
+        let previousID = visible.dropFirst().first?.id
+        let fetched = Self.orderWindows(visible, favorites: settings.favoriteApps, order: settings.windowOrder)
+        windowActionMessage = nil
         DispatchQueue.main.async {
             self.windows = fetched
             // AltTab-style: preselect the previous window so a quick
             // press-and-release swaps to the last used window
-            self.selectedIndex = (AppSettings.shared.holdMode && fetched.count > 1) ? 1 : 0
+            self.selectedIndex = settings.holdMode
+                ? (fetched.firstIndex(where: { $0.id == previousID }) ?? 0) : 0
             self.loadThumbnails()
         }
     }
@@ -40,6 +44,33 @@ final class HotbarStore: ObservableObject {
     static func applyExclusions(_ windows: [WindowInfo], excluded: Set<String>) -> [WindowInfo] {
         guard !excluded.isEmpty else { return windows }
         return windows.filter { !excluded.contains($0.appName) }
+    }
+
+    static func orderWindows(_ windows: [WindowInfo], favorites: Set<String>, order: WindowOrder) -> [WindowInfo] {
+        windows.enumerated().sorted { lhs, rhs in
+            let leftFavorite = favorites.contains(lhs.element.appName)
+            let rightFavorite = favorites.contains(rhs.element.appName)
+            if leftFavorite != rightFavorite { return leftFavorite }
+            let comparison: ComparisonResult
+            switch order {
+            case .recent: return lhs.offset < rhs.offset
+            case .appName:
+                comparison = lhs.element.appName.localizedStandardCompare(rhs.element.appName)
+            case .title:
+                comparison = lhs.element.title.localizedStandardCompare(rhs.element.title)
+            }
+            return comparison == .orderedSame ? lhs.offset < rhs.offset : comparison == .orderedAscending
+        }.map(\.element)
+    }
+
+    func performWindowAction(_ action: WindowAction) {
+        guard windows.indices.contains(selectedIndex) else { return }
+        do {
+            try WindowArranger.perform(action, on: windows[selectedIndex])
+            windowActionMessage = nil
+        } catch {
+            windowActionMessage = error.localizedDescription
+        }
     }
 
     func cycleSelection(forward: Bool) {

@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Hotbar direct distribution script
 # Usage: ./scripts/distribute.sh [version]
+# Set SIMPLE_DMG=1 to package without Finder layout automation.
 #
 # Produces a Developer ID signed, notarized and stapled DMG in build/.
 # Both the .app and the .dmg are notarized+stapled, so the DMG passes
@@ -146,7 +147,11 @@ mkdir -p "$(pwd)/build"
 rm -f "${DMG_PATH}"
 rm -f "$(pwd)"/build/rw.*.dmg
 
-if command -v create-dmg &>/dev/null; then
+DMG_STAGE="$(mktemp -d /tmp/Hotbar-dmg-stage.XXXXXX)"
+trap 'rm -rf "${DMG_STAGE}"' EXIT
+ditto "${APP_PATH}" "${DMG_STAGE}/Hotbar.app"
+
+if command -v create-dmg &>/dev/null && [ "${SIMPLE_DMG:-0}" != "1" ]; then
   create-dmg \
     --volname "Hotbar ${VERSION}" \
     --window-pos 200 120 \
@@ -156,10 +161,11 @@ if command -v create-dmg &>/dev/null; then
     --hide-extension "Hotbar.app" \
     --app-drop-link 425 190 \
     "${DMG_PATH}" \
-    "${EXPORT_PATH}/"
+    "${DMG_STAGE}/"
 else
+  ln -s /Applications "${DMG_STAGE}/Applications"
   hdiutil create -volname "Hotbar ${VERSION}" \
-    -srcfolder "${EXPORT_PATH}" \
+    -srcfolder "${DMG_STAGE}" \
     -ov -format UDZO \
     "${DMG_PATH}"
 fi

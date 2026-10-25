@@ -14,7 +14,7 @@ struct SettingsView: View {
             FiltersSettingsTab()
                 .tabItem { Label("Filters", systemImage: "line.3.horizontal.decrease.circle") }
         }
-        .frame(width: 480, height: 400)
+        .frame(width: 520, height: 480)
     }
 }
 
@@ -174,6 +174,13 @@ struct AppearanceSettingsTab: View {
                     Slider(value: $settings.thumbnailSize, in: 120...220, step: 10)
                 }
                 Toggle("Show window titles", isOn: $settings.showTitles)
+                Toggle("Show hotbar app names", isOn: $settings.showSlotNames)
+                Picker("Switcher position", selection: $settings.overlayPosition) {
+                    ForEach(OverlayPosition.allCases, id: \.self) { Text($0.rawValue).tag($0) }
+                }
+                Picker("Accent color", selection: $settings.accent) {
+                    ForEach(HotbarAccent.allCases, id: \.self) { Text($0.rawValue).tag($0) }
+                }
             } header: {
                 Text("Window Grid")
             }
@@ -186,30 +193,56 @@ struct AppearanceSettingsTab: View {
 
 struct FiltersSettingsTab: View {
     @ObservedObject private var settings = AppSettings.shared
-    @ObservedObject private var store = HotbarStore.shared
+
+    @State private var availableApps: [String] = []
 
     private var appNames: [String] {
-        Array(Set(store.windows.map(\.appName)).union(settings.excludedApps)).sorted()
+        Array(Set(availableApps).union(settings.excludedApps).union(settings.favoriteApps)).sorted()
     }
 
     var body: some View {
         Form {
             Section {
+                Picker("Window order", selection: $settings.windowOrder) {
+                    ForEach(WindowOrder.allCases, id: \.self) { Text($0.rawValue).tag($0) }
+                }
+                Text("Favorites appear first. Recent order is preserved within each app when names match.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            } header: {
+                Text("Ordering")
+            }
+            Section {
                 if appNames.isEmpty {
-                    Text("Open the switcher once to populate the app list.")
+                    Text("Open an app window, then reopen this tab.")
                         .foregroundStyle(.secondary)
                 } else {
                     ForEach(appNames, id: \.self) { name in
-                        Toggle(name, isOn: Binding(
-                            get: { !settings.excludedApps.contains(name) },
-                            set: { shown in
-                                if shown {
-                                    settings.excludedApps.remove(name)
+                        HStack {
+                            Button {
+                                if settings.favoriteApps.contains(name) {
+                                    settings.favoriteApps.remove(name)
                                 } else {
-                                    settings.excludedApps.insert(name)
+                                    settings.favoriteApps.insert(name)
                                 }
+                            } label: {
+                                Image(systemName: settings.favoriteApps.contains(name) ? "star.fill" : "star")
+                                    .foregroundStyle(settings.favoriteApps.contains(name) ? .yellow : .secondary)
                             }
-                        ))
+                            .buttonStyle(.borderless)
+                            .help("Favorite \(name)")
+                            .accessibilityLabel("Favorite \(name)")
+                            Toggle(name, isOn: Binding(
+                                get: { !settings.excludedApps.contains(name) },
+                                set: { shown in
+                                    if shown {
+                                        settings.excludedApps.remove(name)
+                                    } else {
+                                        settings.excludedApps.insert(name)
+                                    }
+                                }
+                            ))
+                        }
                     }
                 }
             } header: {
@@ -221,6 +254,6 @@ struct FiltersSettingsTab: View {
             }
         }
         .formStyle(.grouped)
-        .onAppear { store.refreshWindows() }
+        .onAppear { availableApps = WindowFetcher.fetchAllWindows().map(\.appName) }
     }
 }

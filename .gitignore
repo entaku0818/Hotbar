@@ -8,3 +8,5 @@ build/*.dmg
 build/*.zip
 build/*.bak
 *.xcarchive
+build/launch-proof/
+build/demo-videos/

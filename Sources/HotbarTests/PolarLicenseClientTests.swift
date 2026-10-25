@@ -70,6 +70,36 @@ final class PolarLicenseClientTests: XCTestCase {
         XCTAssertNil(response.error)
     }
 
+    func testUnlimitedLicenseFallsBackToValidation() async throws {
+        StubURLProtocol.stub = { request in
+            if request.url?.lastPathComponent == "activate" {
+                return (400, #"{"detail":"This license key does not support activations. Use the /validate endpoint instead."}"#)
+            }
+            let body = try XCTUnwrap(request.decodedBody())
+            XCTAssertNil(body["activation_id"])
+            XCTAssertEqual(body["key"], "UNLIMITED")
+            XCTAssertEqual(body["organization_id"], "org-123")
+            return (200, #"{"status":"granted","limit_activations":null}"#)
+        }
+        let response = try await makeClient().activate(licenseKey: "UNLIMITED", instanceName: "Test Mac")
+        XCTAssertTrue(response.activated)
+        XCTAssertEqual(response.instance?.id, PolarLicenseClient.unlimitedInstanceID)
+        let validation = try await makeClient().validate(licenseKey: "UNLIMITED", instanceID: try XCTUnwrap(response.instance?.id))
+        XCTAssertTrue(validation.valid)
+    }
+
+    func testUnlimitedValidationRejectsLimitedRevokedAndIncompletePayloads() async throws {
+        for payload in [
+            #"{"status":"granted","limit_activations":1}"#,
+            #"{"status":"revoked","limit_activations":null}"#,
+            #"{"status":"granted"}"#
+        ] {
+            StubURLProtocol.stub = { _ in (200, payload) }
+            let response = try await makeClient().validate(licenseKey: "KEY", instanceID: PolarLicenseClient.unlimitedInstanceID)
+            XCTAssertFalse(response.valid)
+        }
+    }
+
     func testValidateReturnsInvalidOnNon200() async throws {
         StubURLProtocol.stub = { _ in
             (404, #"{"error": "ResourceNotFound", "detail": "Activation not found."}"#)

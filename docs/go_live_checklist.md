@@ -1,6 +1,35 @@
 # Hotbar 発売手順（実ID投入チェックリスト）
 
-最終更新: 2026-10-12
+最終更新: 2026-10-25
+
+## 2026-10-25: 本番ライセンスの通し確認
+
+- Hotbar限定・利用総数1回の100%割引で、開発者本人の無料注文を完了。カード課金なし。本番ライセンス発行を確認。
+- 実機で無効キーが Not found として拒否されることを確認。
+- 台数無制限キーは Polar の activate API を使えないことが判明。無制限キーのみ validate API に切り替え、granted と明示的な limit_activations:null を要求する修正を実施。
+- v1.1.0 build 4 で期限切れからの認証成功、再起動時の再検証日時更新を確認。試用開始日は元に戻し、本人用の正規ライセンスを保持。
+- 78テスト成功、strict lint成功。修正後のアプリとDMGをDeveloper ID署名・再公証・staple済み。
+- **残り**: 新版DMGと販売ページの本番公開。
+
+## 2026-10-25: Polar 本番画面で確認・更新済み
+
+- Chrome拡張で本番の商品編集を実施。JPY 1,500 の通貨設定を外し、USD 9.99 のみを保存。「Product Updated」を確認。
+- 既存の購入リンクから新しい決済画面を開き、日本の購入画面でも $9.99 / Taxes (included) / Total $9.99 と表示されることを確認。実際の支払いは行っていない。
+- Hotbar License Key: Never expires、Activation limit Unlimited、Usage limit Unlimited を確認。
+- Finance → Account: Account approved、Identity verified。ユーザーの設定後、Payout account connected と ready to receive payouts を確認。受取口座接続済み。
+- **残り**: キー発行から認証・解除までの通し検証、販売ページと v1.1.0 DMG の本番公開。下記の過去記録にある未確認項目は、この記録を優先する。
+- 変更確認画像: ローカルの `build/launch-proof/polar-usd-product.png`（Git対象外）。
+
+## 2026-10-25: USD への価格統一（反映作業中）
+
+- 販売価格は **US$9.99 買い切り**に統一する。以下の過去の実測にある ¥1,500 は旧価格。
+- アプリの購入案内を US$9.99 に変更。配布済み DMG への反映には再ビルド・リリースが必要。
+- 販売ページ・規約の価格表記はローカルで US$9.99 に変更済み（Hotbar-landing の3ファイル）。Polar の Checkout の選択価格・税込設定を確認してから公開する。
+- Polar の JPY 価格をアーカイブする前に、既存 Checkout Link が USD で購入できることを確認する。
+- v1.1.0（build 3）を準備。ウィンドウ配置・見た目・お気に入り設定と数字キー修正を含む。build/test（76件）・strict lint 成功。
+- 配布処理は `SIMPLE_DMG=1 ./scripts/distribute.sh` で Finder 自動操作を使わず実行可能。DMG 内にはアプリと Applications リンクのみを含める。
+- **未完了**: Polar 本番 USD 設定・税込設定・Activation limit・Payout の確認、キー発行から解除までの通し検証、販売ページ本番公開、更新版 DMG の公開。
+- 利用動画は横長25秒・横長15秒・縦長30秒を準備中。実際の操作素材はまだ収録完了していない。
 
 Polar.sh で本番商品を作ったあと、**何をどの順で差し替えれば売れるか**の手順書。
 配布前に、ここに書いてある項目をすべて解消すること。
@@ -126,7 +155,7 @@ Config/Release.xcconfig:7   POLAR_API_BASE_URL    = https://api.polar.sh/v1
   `https:/$()/api.polar.sh/v1` の形でエスケープされている。**この書き方を崩さないこと。**
 - 商品には **License Key benefit を必ず付ける**。これが無いと購入者にキーが発行されず、
   アプリのアクティベート画面が永久に通らない。
-- 価格は ¥1,500 買い切り（one-time）。サブスクにしないこと。
+- 価格は **US$9.99 買い切り（one-time）**。サブスクにしないこと。
 
 差し替えたらビルドし直す:
 

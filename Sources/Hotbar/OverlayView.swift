@@ -46,6 +46,9 @@ struct OverlayView: View {
                 )
                 .frame(maxHeight: 380)
 
+                WindowActionBar()
+                    .padding(.horizontal, 20)
+
                 // Non-blocking hint when accessibility is missing
                 if !isAccessibilityGranted {
                     AccessibilityHintBanner()
@@ -145,11 +148,11 @@ struct WindowCell: View {
         VStack(spacing: 6) {
             ZStack {
                 RoundedRectangle(cornerRadius: 10)
-                    .fill(isSelected ? Color.accentColor.opacity(0.2) : Color.white.opacity(0.05))
+                    .fill(isSelected ? settings.accent.color.opacity(0.2) : Color.white.opacity(0.05))
                     .overlay(
                         RoundedRectangle(cornerRadius: 10)
                             .strokeBorder(
-                                isSelected ? Color.accentColor : Color.white.opacity(0.1),
+                                isSelected ? settings.accent.color : Color.white.opacity(0.1),
                                 lineWidth: isSelected ? 2 : 1
                             )
                     )
@@ -221,6 +224,7 @@ struct AccessibilityHintBanner: View {
 // MARK: - Hotbar slot row
 
 struct HotbarSlotRow: View {
+    @EnvironmentObject var store: HotbarStore
     let slots: [Int: WindowInfo]
     let assignedSlot: Int?
 
@@ -232,6 +236,12 @@ struct HotbarSlotRow: View {
                     window: slots[index],
                     isJustAssigned: assignedSlot == index
                 )
+                .onTapGesture {
+                    guard slots[index] != nil else { return }
+                    NotificationCenter.default.post(name: .hideOverlay, object: nil)
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.08) { store.activateSlot(index: index) }
+                }
+                .help(slots[index]?.title ?? "Hold \(index) to assign the selected window")
             }
         }
     }
@@ -243,19 +253,20 @@ struct HotbarSlot: View {
     let index: Int
     let window: WindowInfo?
     let isJustAssigned: Bool
+    @ObservedObject private var settings = AppSettings.shared
 
     var body: some View {
         VStack(spacing: 4) {
             ZStack {
                 RoundedRectangle(cornerRadius: 8)
                     .fill(window != nil
-                        ? Color.accentColor.opacity(0.15)
+                        ? settings.accent.color.opacity(0.15)
                         : Color.white.opacity(0.05))
                     .overlay(
                         RoundedRectangle(cornerRadius: 8)
                             .strokeBorder(
                                 isJustAssigned ? Color.yellow :
-                                    (window != nil ? Color.accentColor.opacity(0.5) : Color.white.opacity(0.1)),
+                                    (window != nil ? settings.accent.color.opacity(0.5) : Color.white.opacity(0.1)),
                                 lineWidth: isJustAssigned ? 2 : 1
                             )
                     )
@@ -278,6 +289,14 @@ struct HotbarSlot: View {
                 }
             }
             .frame(width: 56, height: 56)
+
+            if settings.showSlotNames {
+                Text(window?.appName ?? "Empty")
+                    .font(.caption2)
+                    .lineLimit(1)
+                    .frame(width: 64)
+                    .foregroundStyle(.secondary)
+            }
 
             HStack(spacing: 2) {
                 Image(systemName: "command")
