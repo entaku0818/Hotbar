@@ -55,9 +55,7 @@ final class OverlayWindowController: NSObject {
         if let screen = NSScreen.main {
             let screenFrame = screen.visibleFrame
             let panelSize = panel.frame.size
-            let originX = screenFrame.midX - panelSize.width / 2
-            let originY = screenFrame.midY - panelSize.height / 2
-            panel.setFrameOrigin(NSPoint(x: originX, y: originY))
+            panel.setFrameOrigin(AppSettings.shared.overlayPosition.origin(in: screenFrame, panelSize: panelSize))
         }
 
         panel.orderFrontRegardless()

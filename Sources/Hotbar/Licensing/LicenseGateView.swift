@@ -74,7 +74,7 @@ struct LicenseGateView: View {
                 + "more than 14 days since the last successful check. Reconnect to the "
                 + "internet and reopen Hotbar, or re-enter your license key below."
         }
-        return "Hotbar is ¥1,500, one-time purchase — no subscription. "
+        return "Hotbar is US$9.99, one-time purchase — no subscription. "
             + "Purchases are refundable within 14 days."
     }
 

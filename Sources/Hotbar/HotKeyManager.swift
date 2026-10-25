@@ -189,13 +189,12 @@ final class HotKeyManager {
         }
     }
 
-    /// keyCodes 18-26 = 1-9 on the main keyboard. ⌘+digit jumps to a slot;
+    /// Number-row keys 1–9 on the main keyboard. ⌘+digit jumps to a slot;
     /// digit alone (held) registers the current selection into that slot.
     private func handleDigitSlotKey(keyCode: Int64, flags: CGEventFlags, event: CGEvent) -> Unmanaged<CGEvent>? {
-        guard keyCode >= 18, keyCode <= 26 else {
+        guard let digit = Self.slotDigit(for: keyCode) else {
             return Unmanaged.passRetained(event)
         }
-        let digit = Int(keyCode) - 17
         if flags.contains(.maskCommand) {
             DispatchQueue.main.async {
                 self.overlayController?.hide()
@@ -265,8 +264,7 @@ final class HotKeyManager {
         if keyCode == 124 || keyCode == 125 { HotbarStore.shared.cycleSelection(forward: true); return }
         if keyCode == 36 { HotbarStore.shared.activateSelectedWindow(); return }
 
-        if flags.contains(.command), keyCode >= 18, keyCode <= 26 {
-            let digit = Int(keyCode) - 17
+        if flags.contains(.command), let digit = Self.slotDigit(for: Int64(keyCode)) {
             controller.hide()
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.08) {
                 HotbarStore.shared.activateSlot(index: digit)
@@ -274,9 +272,14 @@ final class HotKeyManager {
             return
         }
 
-        if !flags.contains(.command), keyCode >= 18, keyCode <= 26 {
-            HoldKeyDetector.shared.start(digit: Int(keyCode) - 17)
+        if !flags.contains(.command), let digit = Self.slotDigit(for: Int64(keyCode)) {
+            HoldKeyDetector.shared.start(digit: digit)
         }
+    }
+
+    static func slotDigit(for keyCode: Int64) -> Int? {
+        // macOS virtual key codes are not consecutive for the number row.
+        [18: 1, 19: 2, 20: 3, 21: 4, 23: 5, 22: 6, 26: 7, 28: 8, 25: 9][keyCode]
     }
 
     private static func cgFlags(from flags: NSEvent.ModifierFlags) -> CGEventFlags {

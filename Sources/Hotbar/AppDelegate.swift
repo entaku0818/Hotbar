@@ -12,6 +12,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private var permissionRetryTimer: Timer?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        // Unit-test hosts must not install global shortcuts or request macOS permissions.
+        guard NSClassFromString("XCTestCase") == nil,
+              ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] == nil else { return }
         NSApp.setActivationPolicy(.accessory)
 
         setupStatusItem()
@@ -19,6 +22,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         setupHotKeys()
         requestAccessibilityIfNeeded()
         showOnboardingIfNeeded()
+
+        if CommandLine.arguments.contains("--show-settings") {
+            DispatchQueue.main.async { self.openSettings() }
+        }
+        if CommandLine.arguments.contains("--show-switcher") {
+            DispatchQueue.main.async { self.showSwitcher() }
+        }
 
         NotificationCenter.default.addObserver(
             self,

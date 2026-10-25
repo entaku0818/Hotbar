@@ -28,6 +28,8 @@
 		CDF68041BE60C6409434205A /* AppSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = A906E8A4133AB3A7F2DD1533 /* AppSettings.swift */; };
 		E2A8EBDF5D9A523123417FDB /* HotKeyManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C504CA4B7DCC02EC6AB6313E /* HotKeyManager.swift */; };
 		E9D6F2F759CB736508F016BE /* HotkeyPreference.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A27C8195A439F37E688FA04 /* HotkeyPreference.swift */; };
+		642724A0B6914040B77A8A2F /* WindowArranger.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE4EA593E6494D1586DFA58B /* WindowArranger.swift */; };
+		B9436CCDD1174079AEE5955C /* CustomizationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5F7499871364B3DBAD2FAAF /* CustomizationTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -68,6 +70,8 @@
 		DAE0060020A099E7B3786D4A /* HotbarApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotbarApp.swift; sourceTree = "<group>"; };
 		E38B2840A45F115CE6235EDF /* Hotbar.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Hotbar.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		F38306D9932E4B892685D6EE /* LicenseManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LicenseManager.swift; sourceTree = "<group>"; };
+		CE4EA593E6494D1586DFA58B /* WindowArranger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowArranger.swift; sourceTree = "<group>"; };
+		A5F7499871364B3DBAD2FAAF /* CustomizationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomizationTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -83,6 +87,7 @@
 		49DAFBBB56028B697A029976 /* Hotbar */ = {
 			isa = PBXGroup;
 			children = (
+				CE4EA593E6494D1586DFA58B /* WindowArranger.swift */,
 				D4DC47A9345BC01A6499FEB1 /* AppDelegate.swift */,
 				A906E8A4133AB3A7F2DD1533 /* AppSettings.swift */,
 				6571C4CA6B38676448ACE3E3 /* Assets.xcassets */,
@@ -137,6 +142,7 @@
 		F2B6B9BB5D2DD1A50954D4EF /* HotbarTests */ = {
 			isa = PBXGroup;
 			children = (
+				A5F7499871364B3DBAD2FAAF /* CustomizationTests.swift */,
 				4A6617D306D87BC6945D61B6 /* LicenseManagerTests.swift */,
 				21D9A296C26B483CB4B34648 /* PolarLicenseClientTests.swift */,
 				1DE73A487A76D10C015C04F3 /* UpdateCheckerTests.swift */,
@@ -238,6 +244,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				642724A0B6914040B77A8A2F /* WindowArranger.swift in Sources */,
 				A7A9575F74F6B404AC4DC201 /* AppDelegate.swift in Sources */,
 				CDF68041BE60C6409434205A /* AppSettings.swift in Sources */,
 				E2A8EBDF5D9A523123417FDB /* HotKeyManager.swift in Sources */,
@@ -261,6 +268,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B9436CCDD1174079AEE5955C /* CustomizationTests.swift in Sources */,
 				1086C0F4F79BB02F0980393C /* LicenseManagerTests.swift in Sources */,
 				B85117BC511D147340A86ECC /* PolarLicenseClientTests.swift in Sources */,
 				76B126958DD47A809D5045DA /* UpdateCheckerTests.swift in Sources */,
