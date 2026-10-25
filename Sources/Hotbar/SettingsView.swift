@@ -3,29 +3,49 @@ import AppKit
 import ServiceManagement
 
 struct SettingsView: View {
+    @State private var selectedTab = 0
+
     var body: some View {
-        TabView {
-            GeneralSettingsTab()
-                .tabItem { Label("General", systemImage: "gearshape") }
-            ShortcutSettingsTab()
-                .tabItem { Label("Shortcut", systemImage: "keyboard") }
-            AppearanceSettingsTab()
-                .tabItem { Label("Appearance", systemImage: "paintbrush") }
-            FiltersSettingsTab()
-                .tabItem { Label("Filters", systemImage: "line.3.horizontal.decrease.circle") }
+        VStack(spacing: 0) {
+            Picker("Settings section", selection: $selectedTab) {
+                Text("General").tag(0)
+                Text("Shortcut").tag(1)
+                Text("Appearance").tag(2)
+                Text("Filters").tag(3)
+            }
+            .pickerStyle(.segmented)
+            .labelsHidden()
+            .padding()
+            Group {
+                switch selectedTab {
+                case 1: ShortcutSettingsTab()
+                case 2: AppearanceSettingsTab()
+                case 3: FiltersSettingsTab()
+                default: GeneralSettingsTab()
+                }
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
-        .frame(width: 520, height: 480)
+        .frame(width: 560, height: 500)
     }
 }
 
 // MARK: - General
 
 struct GeneralSettingsTab: View {
+    @ObservedObject private var settings = AppSettings.shared
     @State private var launchAtLogin = (SMAppService.mainApp.status == .enabled)
     @State private var screenRecordingGranted = CGPreflightScreenCaptureAccess()
 
     var body: some View {
         Form {
+            Section {
+                Picker("Language", selection: $settings.language) {
+                    ForEach(AppLanguage.allCases, id: \.self) { language in
+                        Text(LocalizedStringKey(language.title)).tag(language)
+                    }
+                }
+            }
             Section {
                 Toggle("Launch Hotbar at login", isOn: $launchAtLogin)
                     .onChange(of: launchAtLogin) { enabled in
@@ -49,8 +69,7 @@ struct GeneralSettingsTab: View {
                         .foregroundStyle(.green)
                 } else {
                     Text(
-                        "Optional: window previews (thumbnails) and exact window titles need Screen Recording permission. " +
-                        "Without it, app icons are shown."
+                        LocalizedStringKey("Preview permission explanation")
                     )
                         .font(.caption)
                         .foregroundStyle(.secondary)
@@ -86,7 +105,7 @@ struct ShortcutSettingsTab: View {
                     Button {
                         isRecording ? stopRecording() : startRecording()
                     } label: {
-                        Text(isRecording ? "Press keys…" : hotkey.displayString)
+                        Text(isRecording ? L10n.text("Press keys…") : hotkey.displayString)
                             .font(.system(.body, design: .monospaced))
                             .frame(minWidth: 120)
                     }
@@ -111,9 +130,9 @@ struct ShortcutSettingsTab: View {
                     Text("Toggle").tag(false)
                 }
                 .pickerStyle(.radioGroup)
-                Text(settings.holdMode
+                Text(LocalizedStringKey(settings.holdMode
                     ? "Hold the modifier, tap the key to cycle windows, release to switch."
-                    : "Press once to open, click or press ⌘1–9 to switch, ESC to close.")
+                    : "Press once to open, click or press ⌘1–9 to switch, ESC to close."))
                     .font(.caption)
                     .foregroundStyle(.secondary)
             } header: {
@@ -176,10 +195,10 @@ struct AppearanceSettingsTab: View {
                 Toggle("Show window titles", isOn: $settings.showTitles)
                 Toggle("Show hotbar app names", isOn: $settings.showSlotNames)
                 Picker("Switcher position", selection: $settings.overlayPosition) {
-                    ForEach(OverlayPosition.allCases, id: \.self) { Text($0.rawValue).tag($0) }
+                    ForEach(OverlayPosition.allCases, id: \.self) { Text(LocalizedStringKey($0.rawValue)).tag($0) }
                 }
                 Picker("Accent color", selection: $settings.accent) {
-                    ForEach(HotbarAccent.allCases, id: \.self) { Text($0.rawValue).tag($0) }
+                    ForEach(HotbarAccent.allCases, id: \.self) { Text(LocalizedStringKey($0.rawValue)).tag($0) }
                 }
             } header: {
                 Text("Window Grid")
@@ -204,7 +223,7 @@ struct FiltersSettingsTab: View {
         Form {
             Section {
                 Picker("Window order", selection: $settings.windowOrder) {
-                    ForEach(WindowOrder.allCases, id: \.self) { Text($0.rawValue).tag($0) }
+                    ForEach(WindowOrder.allCases, id: \.self) { Text(LocalizedStringKey($0.rawValue)).tag($0) }
                 }
                 Text("Favorites appear first. Recent order is preserved within each app when names match.")
                     .font(.caption)
@@ -230,8 +249,8 @@ struct FiltersSettingsTab: View {
                                     .foregroundStyle(settings.favoriteApps.contains(name) ? .yellow : .secondary)
                             }
                             .buttonStyle(.borderless)
-                            .help("Favorite \(name)")
-                            .accessibilityLabel("Favorite \(name)")
+                            .help(L10n.format("Favorite %@", name))
+                            .accessibilityLabel(L10n.format("Favorite %@", name))
                             Toggle(name, isOn: Binding(
                                 get: { !settings.excludedApps.contains(name) },
                                 set: { shown in

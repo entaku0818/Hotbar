@@ -47,6 +47,13 @@ final class AppSettings: ObservableObject {
         didSet { defaults.set(showSlotNames, forKey: "showSlotNames") }
     }
 
+    @Published var language: AppLanguage {
+        didSet {
+            defaults.set(language.rawValue, forKey: "appLanguage")
+            NotificationCenter.default.post(name: .hotbarLanguageChanged, object: nil)
+        }
+    }
+
     private let defaults: UserDefaults
 
     private enum Keys {
@@ -62,6 +69,7 @@ final class AppSettings: ObservableObject {
 
     init(defaults: UserDefaults) {
         self.defaults = defaults
+        language = AppLanguage(rawValue: defaults.string(forKey: "appLanguage") ?? "") ?? .system
         favoriteApps = Set(defaults.stringArray(forKey: "favoriteApps") ?? [])
         windowOrder = WindowOrder(rawValue: defaults.string(forKey: "windowOrder") ?? "") ?? .recent
         overlayPosition = OverlayPosition(rawValue: defaults.string(forKey: "overlayPosition") ?? "") ?? .center

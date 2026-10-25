@@ -89,6 +89,68 @@ final class CustomizationTests: XCTestCase {
         XCTAssertEqual(OverlayPosition.bottom.origin(in: visible, panelSize: size), CGPoint(x: -1170, y: 56))
     }
 
+    func testRelativeOverlayFitsAllDisplaySizesAndPositions() {
+        let displays = [
+            CGRect(x: 0, y: 25, width: 1280, height: 775),
+            CGRect(x: -1920, y: 40, width: 1920, height: 1040),
+            CGRect(x: 0, y: 0, width: 3440, height: 1400),
+            CGRect(x: 0, y: 0, width: 900, height: 1400)
+        ]
+        for display in displays {
+            let size = OverlayWindowController.panelSize(in: display)
+            XCTAssertEqual(size.width / display.width, 0.85, accuracy: 0.002)
+            XCTAssertEqual(size.height / display.height, 0.82, accuracy: 0.002)
+            for position in [OverlayPosition.center, .top, .bottom] {
+                let frame = CGRect(origin: position.origin(in: display, panelSize: size), size: size)
+                XCTAssertTrue(display.contains(frame))
+            }
+        }
+    }
+
+    func testLanguagePreferencePersistsAndUnknownValuesUseSystem() {
+        let settings = AppSettings(defaults: defaults)
+        XCTAssertEqual(settings.language, .system)
+        settings.language = .japanese
+        XCTAssertEqual(AppSettings(defaults: defaults).language, .japanese)
+        settings.language = .english
+        XCTAssertEqual(AppSettings(defaults: defaults).language, .english)
+        defaults.set("unsupported", forKey: "appLanguage")
+        XCTAssertEqual(AppSettings(defaults: defaults).language, .system)
+    }
+
+    func testLanguageResolutionRespectsPreferredSupportedLanguage() {
+        XCTAssertEqual(AppLanguage.system.resolvedCode(preferredLanguages: ["ja-JP", "en-US"]), "ja")
+        XCTAssertEqual(AppLanguage.system.resolvedCode(preferredLanguages: ["en-GB", "ja"]), "en")
+        XCTAssertEqual(AppLanguage.system.resolvedCode(preferredLanguages: ["fr-FR", "ja_JP"]), "ja")
+        XCTAssertEqual(AppLanguage.system.resolvedCode(preferredLanguages: ["fr-FR"]), "en")
+        XCTAssertEqual(AppLanguage.english.resolvedCode(preferredLanguages: ["ja"]), "en")
+        XCTAssertEqual(AppLanguage.japanese.resolvedCode(preferredLanguages: ["en"]), "ja")
+    }
+
+    func testBundledLanguagesHaveMatchingKeysAndPlaceholders() throws {
+        let english = try strings(for: "en")
+        let japanese = try strings(for: "ja")
+        XCTAssertGreaterThan(english.count, 100)
+        XCTAssertEqual(Set(english.keys), Set(japanese.keys))
+        for (key, value) in english {
+            let translation = try XCTUnwrap(japanese[key])
+            XCTAssertFalse(translation.isEmpty, key)
+            for token in ["%@", "%d"] {
+                XCTAssertEqual(value.components(separatedBy: token).count,
+                               translation.components(separatedBy: token).count, key)
+            }
+        }
+        XCTAssertEqual(L10n.text("General", language: .japanese), "一般")
+        XCTAssertEqual(L10n.text("General", language: .english), "General")
+        XCTAssertEqual(L10n.text("Unknown server error", language: .japanese), "Unknown server error")
+    }
+
+    private func strings(for language: String) throws -> [String: String] {
+        let path = try XCTUnwrap(Bundle.main.path(forResource: language, ofType: "lproj"))
+        let data = try Data(contentsOf: URL(fileURLWithPath: path).appendingPathComponent("Localizable.strings"))
+        return try XCTUnwrap(PropertyListSerialization.propertyList(from: data, format: nil) as? [String: String])
+    }
+
     private func window(_ identifier: CGWindowID, _ app: String, _ title: String = "Window") -> WindowInfo {
         WindowInfo(id: identifier, title: title, appName: app, appBundleIdentifier: nil,
                    pid: 123, thumbnail: nil, appIcon: nil)

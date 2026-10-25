@@ -14,7 +14,7 @@ final class OverlayWindowController: NSObject {
         let store = HotbarStore.shared
 
         let panel = NSPanel(
-            contentRect: NSRect(x: 0, y: 0, width: 900, height: 560),
+            contentRect: NSRect(origin: .zero, size: Self.panelSize(in: NSScreen.main?.visibleFrame ?? .zero)),
             styleMask: [.nonactivatingPanel, .fullSizeContentView, .borderless],
             backing: .buffered,
             defer: false
@@ -30,7 +30,7 @@ final class OverlayWindowController: NSObject {
         let overlayView = OverlayView()
             .environmentObject(store)
 
-        panel.contentView = NSHostingView(rootView: overlayView)
+        panel.contentView = NSHostingView(rootView: LocalizedContent { overlayView })
         self.panel = panel
 
         // ESC / スロット割り当て通知でパネルを閉じる
@@ -52,17 +52,24 @@ final class OverlayWindowController: NSObject {
 
         HotbarStore.shared.refreshWindows()
 
-        if let screen = NSScreen.main {
+        if let screen = NSScreen.screens.first(where: { $0.frame.contains(NSEvent.mouseLocation) }) ?? NSScreen.main {
             let screenFrame = screen.visibleFrame
-            let panelSize = panel.frame.size
-            panel.setFrameOrigin(AppSettings.shared.overlayPosition.origin(in: screenFrame, panelSize: panelSize))
+            let panelSize = Self.panelSize(in: screenFrame)
+            let origin = AppSettings.shared.overlayPosition.origin(in: screenFrame, panelSize: panelSize)
+            panel.setFrame(NSRect(origin: origin, size: panelSize), display: true)
         }
 
         panel.orderFrontRegardless()
         isVisible = true
     }
 
+    static func panelSize(in visibleFrame: CGRect) -> CGSize {
+        CGSize(width: (visibleFrame.width * 0.85).rounded(.down),
+               height: (visibleFrame.height * 0.82).rounded(.down))
+    }
+
     func hide() {
+        HotbarStore.shared.cancelThumbnailLoading()
         panel?.orderOut(nil)
         isVisible = false
         HoldKeyDetector.shared.cancel()

@@ -10,6 +10,8 @@ final class HotbarStore: ObservableObject {
     @Published var windows: [WindowInfo] = []
     @Published var selectedIndex: Int = 0
 
+    private var thumbnailTask: Task<Void, Never>?
+
     private let slotsKey = "hotbarSlots"
     private let defaults: UserDefaults
 
@@ -31,13 +33,23 @@ final class HotbarStore: ObservableObject {
         let previousID = visible.dropFirst().first?.id
         let fetched = Self.orderWindows(visible, favorites: settings.favoriteApps, order: settings.windowOrder)
         windowActionMessage = nil
-        DispatchQueue.main.async {
-            self.windows = fetched
-            // AltTab-style: preselect the previous window so a quick
-            // press-and-release swaps to the last used window
-            self.selectedIndex = settings.holdMode
-                ? (fetched.firstIndex(where: { $0.id == previousID }) ?? 0) : 0
-            self.loadThumbnails()
+        // Preserve previews synchronously so opening the panel never flashes back to icons.
+        windows = Self.reusingThumbnails(in: fetched, from: windows, allowed: CGPreflightScreenCaptureAccess())
+        selectedIndex = settings.holdMode
+            ? (fetched.firstIndex(where: { $0.id == previousID }) ?? 0) : 0
+        loadThumbnails()
+    }
+
+    static func reusingThumbnails(in fetched: [WindowInfo], from previous: [WindowInfo],
+                                  allowed: Bool) -> [WindowInfo] {
+        let cached = Dictionary(previous.map { ($0.id, $0) }, uniquingKeysWith: { _, latest in latest })
+        return fetched.map { window in
+            var updated = window
+            // Window IDs may be reused by a different process. Never reuse its pixels.
+            if allowed, let old = cached[window.id], old.pid == window.pid {
+                updated.thumbnail = old.thumbnail
+            }
+            return updated
         }
     }
 
@@ -91,40 +103,85 @@ final class HotbarStore: ObservableObject {
         }
     }
 
-    /// Capture window previews via ScreenCaptureKit (macOS 14+).
-    /// Requires Screen Recording permission; silently keeps app icons otherwise.
+    func cancelThumbnailLoading() {
+        thumbnailTask?.cancel()
+        thumbnailTask = nil
+    }
+
+    /// Keep cached previews visible while refreshing, with at most three captures in flight.
     private func loadThumbnails() {
-        guard #available(macOS 14.0, *) else { return }
-        guard CGPreflightScreenCaptureAccess() else { return }
+        cancelThumbnailLoading()
+        guard #available(macOS 14.0, *), CGPreflightScreenCaptureAccess() else { return }
+        let requested = windows
+        let selectedID = windows.indices.contains(selectedIndex) ? windows[selectedIndex].id : nil
 
-        Task { @MainActor in
-            guard let content = try? await SCShareableContent.excludingDesktopWindows(true, onScreenWindowsOnly: true) else {
-                return
+        thumbnailTask = Task { @MainActor [weak self] in
+            let started = Date()
+            guard let content = try? await SCShareableContent.excludingDesktopWindows(true, onScreenWindowsOnly: true),
+                  !Task.isCancelled else { return }
+            let available = Dictionary(content.windows.map { ($0.windowID, $0) },
+                                       uniquingKeysWith: { first, _ in first })
+            let ordered = Self.thumbnailOrder(requested, selectedID: selectedID)
+            let targets = ordered.compactMap { info -> (WindowInfo, SCWindow)? in
+                guard let window = available[info.id],
+                      window.owningApplication?.processID == info.pid else { return nil }
+                return (info, window)
             }
-            for windowInfo in self.windows where windowInfo.thumbnail == nil {
-                guard let scWindow = content.windows.first(where: { $0.windowID == windowInfo.id }) else { continue }
-
-                let maxWidth: CGFloat = 360
-                let scale = min(1, maxWidth / max(scWindow.frame.width, 1))
-                let config = SCStreamConfiguration()
-                config.width = max(1, Int(scWindow.frame.width * scale))
-                config.height = max(1, Int(scWindow.frame.height * scale))
-                config.showsCursor = false
-                let filter = SCContentFilter(desktopIndependentWindow: scWindow)
-
-                guard let cgImage = try? await SCScreenshotManager.captureImage(
-                    contentFilter: filter, configuration: config
-                ) else { continue }
-
-                // Windows list may have been refreshed meanwhile — match by id
-                if let idx = self.windows.firstIndex(where: { $0.id == windowInfo.id }) {
-                    self.windows[idx].thumbnail = NSImage(
-                        cgImage: cgImage,
-                        size: NSSize(width: cgImage.width, height: cgImage.height)
-                    )
+            await withTaskGroup(of: (CGWindowID, pid_t, CGImage?).self) { group in
+                var next = 0
+                var completed = 0
+                for _ in 0..<min(3, targets.count) {
+                    let target = targets[next]
+                    next += 1
+                    group.addTask { (target.0.id, target.0.pid, await Self.captureThumbnail(target.1)) }
                 }
+                for await (windowID, pid, image) in group {
+                    guard !Task.isCancelled else {
+                        group.cancelAll()
+                        return
+                    }
+                    if let image, let self,
+                       let index = self.windows.firstIndex(where: { $0.id == windowID && $0.pid == pid }) {
+                        self.windows[index].thumbnail = NSImage(
+                            cgImage: image, size: NSSize(width: image.width, height: image.height)
+                        )
+                        completed += 1
+                        if completed == 1 {
+                            NSLog("[Hotbar] First refreshed preview: %.0f ms", Date().timeIntervalSince(started) * 1000)
+                        }
+                    }
+                    if next < targets.count {
+                        let target = targets[next]
+                        next += 1
+                        group.addTask { (target.0.id, target.0.pid, await Self.captureThumbnail(target.1)) }
+                    }
+                }
+                NSLog("[Hotbar] Refreshed %d previews in %.0f ms", completed, Date().timeIntervalSince(started) * 1000)
             }
         }
+    }
+
+    static func thumbnailOrder(_ windows: [WindowInfo], selectedID: CGWindowID?) -> [WindowInfo] {
+        windows.enumerated().sorted { lhs, rhs in
+            let left = lhs.element
+            let right = rhs.element
+            if (left.id == selectedID) != (right.id == selectedID) { return left.id == selectedID }
+            if (left.thumbnail == nil) != (right.thumbnail == nil) { return left.thumbnail == nil }
+            return lhs.offset < rhs.offset
+        }.map(\.element)
+    }
+
+    @available(macOS 14.0, *)
+    private static func captureThumbnail(_ window: SCWindow) async -> CGImage? {
+        guard !Task.isCancelled else { return nil }
+        let scale = min(1, 360 / max(window.frame.width, window.frame.height, 1))
+        let config = SCStreamConfiguration()
+        config.width = max(1, Int(window.frame.width * scale))
+        config.height = max(1, Int(window.frame.height * scale))
+        config.showsCursor = false
+        return try? await SCScreenshotManager.captureImage(
+            contentFilter: SCContentFilter(desktopIndependentWindow: window), configuration: config
+        )
     }
 
     func assignSlot(index: Int, windowInfo: WindowInfo) {

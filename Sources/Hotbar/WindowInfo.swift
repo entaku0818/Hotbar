@@ -12,7 +12,10 @@ struct WindowInfo: Identifiable, Equatable {
     var appIcon: NSImage?
 
     static func == (lhs: WindowInfo, rhs: WindowInfo) -> Bool {
-        lhs.id == rhs.id
+        // Identifiable supplies stable identity; equality must also reflect displayed content.
+        lhs.id == rhs.id && lhs.pid == rhs.pid && lhs.title == rhs.title
+            && lhs.appName == rhs.appName && lhs.appBundleIdentifier == rhs.appBundleIdentifier
+            && lhs.thumbnail === rhs.thumbnail && lhs.appIcon === rhs.appIcon
     }
 }
 

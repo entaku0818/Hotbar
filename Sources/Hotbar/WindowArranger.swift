@@ -43,7 +43,7 @@ struct WindowActionBar: View {
                     Button {
                         store.performWindowAction(action)
                     } label: {
-                        Label(action.rawValue, systemImage: action.symbol)
+                        Label(LocalizedStringKey(action.rawValue), systemImage: action.symbol)
                     }
                     .disabled(!store.windows.indices.contains(store.selectedIndex)
                               || (action == .nextScreen && NSScreen.screens.count < 2))
@@ -51,7 +51,7 @@ struct WindowActionBar: View {
             }
             .controlSize(.small)
             if let message = store.windowActionMessage {
-                Text(message)
+                Text(LocalizedStringKey(message))
                     .font(.caption)
                     .foregroundStyle(.orange)
                     .fixedSize(horizontal: false, vertical: true)

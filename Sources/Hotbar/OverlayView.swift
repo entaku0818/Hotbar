@@ -9,11 +9,33 @@ struct OverlayView: View {
 
     private var closeHint: String {
         settings.holdMode
-            ? "Release modifier to switch · ESC to cancel"
-            : "\(HotkeyPreference.load().displayString) or ESC to close"
+            ? L10n.text("Release modifier to switch · ESC to cancel")
+            : L10n.format("%@ or ESC to close", HotkeyPreference.load().displayString)
     }
 
     var body: some View {
+        GeometryReader { geometry in
+            overlayContent(width: geometry.size.width)
+        }
+    }
+
+    private var header: some View {
+        HStack {
+            Image(systemName: "square.grid.3x3.fill")
+                .foregroundStyle(.secondary)
+            Text("Hotbar")
+                .font(.headline)
+                .foregroundStyle(.secondary)
+            Spacer()
+            Text(closeHint)
+                .font(.caption)
+                .foregroundStyle(.tertiary)
+        }
+        .padding(.horizontal, 20)
+        .padding(.top, 16)
+    }
+
+    private func overlayContent(width: CGFloat) -> some View {
         ZStack {
             // Background blur
             RoundedRectangle(cornerRadius: 20)
@@ -24,27 +46,15 @@ struct OverlayView: View {
                 )
 
             VStack(spacing: 16) {
-                // Header
-                HStack {
-                    Image(systemName: "square.grid.3x3.fill")
-                        .foregroundStyle(.secondary)
-                    Text("Hotbar")
-                        .font(.headline)
-                        .foregroundStyle(.secondary)
-                    Spacer()
-                    Text(closeHint)
-                        .font(.caption)
-                        .foregroundStyle(.tertiary)
-                }
-                .padding(.horizontal, 20)
-                .padding(.top, 16)
+                header
 
                 // Window grid (upper section) — listing works without any permission
                 WindowGridView(
                     windows: store.windows,
-                    selectedIndex: $store.selectedIndex
+                    selectedIndex: $store.selectedIndex,
+                    sizeScale: min(1.5, max(0.8, width / 900))
                 )
-                .frame(maxHeight: 380)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
 
                 WindowActionBar()
                     .padding(.horizontal, 20)
@@ -64,7 +74,7 @@ struct OverlayView: View {
                     .padding(.bottom, 16)
             }
         }
-        .frame(width: 900, height: 560)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .onReceive(Timer.publish(every: 0.5, on: .main, in: .common).autoconnect()) { _ in
             let trusted = AXIsProcessTrusted()
             if trusted != isAccessibilityGranted {
@@ -92,10 +102,13 @@ struct OverlayView: View {
 struct WindowGridView: View {
     let windows: [WindowInfo]
     @Binding var selectedIndex: Int
+    var sizeScale: CGFloat
     @ObservedObject private var settings = AppSettings.shared
 
+    private var cellWidth: CGFloat { settings.thumbnailSize * sizeScale }
+
     private var columns: [GridItem] {
-        [GridItem(.adaptive(minimum: settings.thumbnailSize, maximum: settings.thumbnailSize + 40), spacing: 12)]
+        [GridItem(.adaptive(minimum: cellWidth, maximum: cellWidth + 40), spacing: 12)]
     }
 
     var body: some View {
@@ -114,7 +127,8 @@ struct WindowGridView: View {
                     ForEach(Array(windows.enumerated()), id: \.element.id) { index, window in
                         WindowCell(
                             window: window,
-                            isSelected: selectedIndex == index
+                            isSelected: selectedIndex == index,
+                            previewHeight: cellWidth * 0.68
                         )
                         .onTapGesture {
                             selectedIndex = index
@@ -142,6 +156,7 @@ struct WindowGridView: View {
 struct WindowCell: View {
     let window: WindowInfo
     let isSelected: Bool
+    let previewHeight: CGFloat
     @ObservedObject private var settings = AppSettings.shared
 
     var body: some View {
@@ -174,7 +189,7 @@ struct WindowCell: View {
                         .foregroundStyle(.tertiary)
                 }
             }
-            .frame(height: settings.thumbnailSize * 0.68)
+            .frame(height: previewHeight)
 
             VStack(spacing: 2) {
                 Text(window.appName)
@@ -241,7 +256,7 @@ struct HotbarSlotRow: View {
                     NotificationCenter.default.post(name: .hideOverlay, object: nil)
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.08) { store.activateSlot(index: index) }
                 }
-                .help(slots[index]?.title ?? "Hold \(index) to assign the selected window")
+                .help(slots[index]?.title ?? L10n.format("Hold %d to assign the selected window", index))
             }
         }
     }
@@ -291,7 +306,7 @@ struct HotbarSlot: View {
             .frame(width: 56, height: 56)
 
             if settings.showSlotNames {
-                Text(window?.appName ?? "Empty")
+                Text(window?.appName ?? L10n.text("Empty"))
                     .font(.caption2)
                     .lineLimit(1)
                     .frame(width: 64)

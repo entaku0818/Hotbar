@@ -5,10 +5,23 @@ final class WindowInfoTests: XCTestCase {
 
     // MARK: - WindowInfo equality
 
-    func testWindowInfoEqualityBasedOnID() {
+    func testWindowInfoEqualityDetectsContentChanges() {
         let windowA = makeWindow(id: 100, title: "Test Window", appName: "TestApp")
         let windowB = makeWindow(id: 100, title: "Different Title", appName: "DifferentApp")
-        XCTAssertEqual(windowA, windowB, "Windows with same ID must be equal regardless of other fields")
+        XCTAssertEqual(windowA.id, windowB.id, "Identity stays stable for SwiftUI")
+        XCTAssertNotEqual(windowA, windowB, "Changed content must invalidate the rendered cell")
+    }
+
+    func testWindowInfoEqualityDetectsNewPreview() {
+        let original = makeWindow(id: 100)
+        var updated = original
+        XCTAssertEqual(original, updated)
+        updated.thumbnail = NSImage(size: NSSize(width: 100, height: 80))
+        XCTAssertNotEqual(original, updated)
+        let copy = updated
+        XCTAssertEqual(copy, updated)
+        updated.thumbnail = NSImage(size: NSSize(width: 100, height: 80))
+        XCTAssertNotEqual(copy, updated)
     }
 
     func testWindowInfoInequalityDifferentID() {
@@ -63,6 +76,43 @@ final class HotbarStoreTests: XCTestCase {
         testDefaults = nil
         store = nil
         super.tearDown()
+    }
+
+    func testRefreshReusesPreviewDespiteTitleOrOrderChanges() {
+        var old = makeWindow(id: 1, title: "Old tab")
+        let image = NSImage(size: NSSize(width: 100, height: 80))
+        old.thumbnail = image
+        let fetched = [makeWindow(id: 2), makeWindow(id: 1, title: "New tab")]
+        let result = HotbarStore.reusingThumbnails(in: fetched, from: [old], allowed: true)
+        XCTAssertEqual(result.map(\.id), [2, 1])
+        XCTAssertNil(result[0].thumbnail)
+        XCTAssertTrue(result[1].thumbnail === image)
+        XCTAssertEqual(result[1].title, "New tab")
+    }
+
+    func testRefreshDoesNotReusePreviewForAnotherProcess() {
+        var old = makeWindow(id: 1, pid: 100)
+        old.thumbnail = NSImage(size: NSSize(width: 100, height: 80))
+        let result = HotbarStore.reusingThumbnails(in: [makeWindow(id: 1, pid: 200)], from: [old], allowed: true)
+        XCTAssertNil(result[0].thumbnail)
+    }
+
+    func testPreviewPriorityIsSelectedThenMissingThenCached() {
+        var cached = makeWindow(id: 1)
+        cached.thumbnail = NSImage(size: NSSize(width: 100, height: 80))
+        var selected = makeWindow(id: 4)
+        selected.thumbnail = cached.thumbnail
+        let ordered = HotbarStore.thumbnailOrder(
+            [cached, makeWindow(id: 2), makeWindow(id: 3), selected], selectedID: 4
+        )
+        XCTAssertEqual(ordered.map(\.id), [4, 2, 3, 1])
+    }
+
+    func testRevokedPermissionDiscardsCachedPreview() {
+        var old = makeWindow(id: 1)
+        old.thumbnail = NSImage(size: NSSize(width: 100, height: 80))
+        let result = HotbarStore.reusingThumbnails(in: [makeWindow(id: 1)], from: [old], allowed: false)
+        XCTAssertNil(result[0].thumbnail)
     }
 
     // MARK: - Slot assignment

@@ -19,17 +19,19 @@
 		4BE288AFB063EB1B95B34B90 /* HotbarApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = DAE0060020A099E7B3786D4A /* HotbarApp.swift */; };
 		6DA7A70ACA3B923CC1D93F6F /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F726BE29BF0DC560A749403 /* SettingsView.swift */; };
 		76B126958DD47A809D5045DA /* UpdateCheckerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1DE73A487A76D10C015C04F3 /* UpdateCheckerTests.swift */; };
+		79653B6A3481AA9CB070C247 /* WindowArranger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C7DFFDF3856B1530714B147 /* WindowArranger.swift */; };
 		7C67E9EE9F075E465BF2FF79 /* LicenseGateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E4529230F3A656CA2E275C9 /* LicenseGateView.swift */; };
+		83E81308B6D3BEEA7B6106CE /* CustomizationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E290F025AF0F91A8729C903 /* CustomizationTests.swift */; };
 		A1983C8CB111B812B28EB949 /* LicenseClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0DB7798B1BFFF4A0D5E2BFFA /* LicenseClient.swift */; };
 		A7A9575F74F6B404AC4DC201 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4DC47A9345BC01A6499FEB1 /* AppDelegate.swift */; };
 		ABC1A1036E996B0B8279AFA5 /* OverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B61397C5AFE82048B3E3A553 /* OverlayView.swift */; };
 		B85117BC511D147340A86ECC /* PolarLicenseClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21D9A296C26B483CB4B34648 /* PolarLicenseClientTests.swift */; };
+		C8E56875B1F85D0C6821A443 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = D816A80FDC2F089A6410D324 /* Localizable.strings */; };
 		C951C32B957A6DE188BB0224 /* PolarConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9CBA33D7089BA6C9E67A9EA /* PolarConfig.swift */; };
+		CD19C76C5F33C6BBBB9B6BCC /* Localization.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDA3E47B98DD78894C9CA4E5 /* Localization.swift */; };
 		CDF68041BE60C6409434205A /* AppSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = A906E8A4133AB3A7F2DD1533 /* AppSettings.swift */; };
 		E2A8EBDF5D9A523123417FDB /* HotKeyManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C504CA4B7DCC02EC6AB6313E /* HotKeyManager.swift */; };
 		E9D6F2F759CB736508F016BE /* HotkeyPreference.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A27C8195A439F37E688FA04 /* HotkeyPreference.swift */; };
-		642724A0B6914040B77A8A2F /* WindowArranger.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE4EA593E6494D1586DFA58B /* WindowArranger.swift */; };
-		B9436CCDD1174079AEE5955C /* CustomizationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5F7499871364B3DBAD2FAAF /* CustomizationTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -56,6 +58,9 @@
 		599BB33146DC51BA58085A55 /* HotbarStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotbarStore.swift; sourceTree = "<group>"; };
 		5E4529230F3A656CA2E275C9 /* LicenseGateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LicenseGateView.swift; sourceTree = "<group>"; };
 		6571C4CA6B38676448ACE3E3 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		6C7DFFDF3856B1530714B147 /* WindowArranger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowArranger.swift; sourceTree = "<group>"; };
+		7E290F025AF0F91A8729C903 /* CustomizationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomizationTests.swift; sourceTree = "<group>"; };
+		89619C1730FBD48DA224B459 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
 		9F726BE29BF0DC560A749403 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		A0E6D53A22A2A2681210878C /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		A906E8A4133AB3A7F2DD1533 /* AppSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSettings.swift; sourceTree = "<group>"; };
@@ -64,14 +69,14 @@
 		AFBDF191DF3691377601B399 /* Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Release.xcconfig; sourceTree = "<group>"; };
 		B61397C5AFE82048B3E3A553 /* OverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverlayView.swift; sourceTree = "<group>"; };
 		B74A331CD8B6B69AD90A3EF2 /* OverlayWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverlayWindowController.swift; sourceTree = "<group>"; };
+		BDC0A2A3188A0B6668EF3BB0 /* ja */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ja; path = ja.lproj/Localizable.strings; sourceTree = "<group>"; };
 		C504CA4B7DCC02EC6AB6313E /* HotKeyManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotKeyManager.swift; sourceTree = "<group>"; };
 		D4DC47A9345BC01A6499FEB1 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		D9CBA33D7089BA6C9E67A9EA /* PolarConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PolarConfig.swift; sourceTree = "<group>"; };
 		DAE0060020A099E7B3786D4A /* HotbarApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotbarApp.swift; sourceTree = "<group>"; };
 		E38B2840A45F115CE6235EDF /* Hotbar.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Hotbar.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		EDA3E47B98DD78894C9CA4E5 /* Localization.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Localization.swift; sourceTree = "<group>"; };
 		F38306D9932E4B892685D6EE /* LicenseManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LicenseManager.swift; sourceTree = "<group>"; };
-		CE4EA593E6494D1586DFA58B /* WindowArranger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowArranger.swift; sourceTree = "<group>"; };
-		A5F7499871364B3DBAD2FAAF /* CustomizationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomizationTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -87,7 +92,6 @@
 		49DAFBBB56028B697A029976 /* Hotbar */ = {
 			isa = PBXGroup;
 			children = (
-				CE4EA593E6494D1586DFA58B /* WindowArranger.swift */,
 				D4DC47A9345BC01A6499FEB1 /* AppDelegate.swift */,
 				A906E8A4133AB3A7F2DD1533 /* AppSettings.swift */,
 				6571C4CA6B38676448ACE3E3 /* Assets.xcassets */,
@@ -97,13 +101,16 @@
 				C504CA4B7DCC02EC6AB6313E /* HotKeyManager.swift */,
 				3A27C8195A439F37E688FA04 /* HotkeyPreference.swift */,
 				4043786DCD7C08A378648EDB /* Info.plist */,
+				EDA3E47B98DD78894C9CA4E5 /* Localization.swift */,
 				A0E6D53A22A2A2681210878C /* OnboardingView.swift */,
 				B61397C5AFE82048B3E3A553 /* OverlayView.swift */,
 				B74A331CD8B6B69AD90A3EF2 /* OverlayWindowController.swift */,
 				9F726BE29BF0DC560A749403 /* SettingsView.swift */,
 				2596B0D4B3A101B2C6909195 /* UpdateChecker.swift */,
+				6C7DFFDF3856B1530714B147 /* WindowArranger.swift */,
 				3917B0EAC9AC657A20EA1B06 /* WindowInfo.swift */,
 				BBBC30AED3661F248643C19A /* Licensing */,
+				D816A80FDC2F089A6410D324 /* Localizable.strings */,
 			);
 			name = Hotbar;
 			path = Sources/Hotbar;
@@ -142,7 +149,7 @@
 		F2B6B9BB5D2DD1A50954D4EF /* HotbarTests */ = {
 			isa = PBXGroup;
 			children = (
-				A5F7499871364B3DBAD2FAAF /* CustomizationTests.swift */,
+				7E290F025AF0F91A8729C903 /* CustomizationTests.swift */,
 				4A6617D306D87BC6945D61B6 /* LicenseManagerTests.swift */,
 				21D9A296C26B483CB4B34648 /* PolarLicenseClientTests.swift */,
 				1DE73A487A76D10C015C04F3 /* UpdateCheckerTests.swift */,
@@ -214,6 +221,7 @@
 			knownRegions = (
 				Base,
 				en,
+				ja,
 			);
 			mainGroup = 89F2C9B98D459AF957C00630;
 			minimizedProjectReferenceProxies = 1;
@@ -234,6 +242,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				24D00CCBABACB3B3BA4410D2 /* Assets.xcassets in Resources */,
+				C8E56875B1F85D0C6821A443 /* Localizable.strings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -244,7 +253,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				642724A0B6914040B77A8A2F /* WindowArranger.swift in Sources */,
 				A7A9575F74F6B404AC4DC201 /* AppDelegate.swift in Sources */,
 				CDF68041BE60C6409434205A /* AppSettings.swift in Sources */,
 				E2A8EBDF5D9A523123417FDB /* HotKeyManager.swift in Sources */,
@@ -254,12 +262,14 @@
 				A1983C8CB111B812B28EB949 /* LicenseClient.swift in Sources */,
 				7C67E9EE9F075E465BF2FF79 /* LicenseGateView.swift in Sources */,
 				2A878A22C7EDF163782A6726 /* LicenseManager.swift in Sources */,
+				CD19C76C5F33C6BBBB9B6BCC /* Localization.swift in Sources */,
 				0A39EDE3C09052A070B5808D /* OnboardingView.swift in Sources */,
 				ABC1A1036E996B0B8279AFA5 /* OverlayView.swift in Sources */,
 				19CF7B4965B37E0C006C3B71 /* OverlayWindowController.swift in Sources */,
 				C951C32B957A6DE188BB0224 /* PolarConfig.swift in Sources */,
 				6DA7A70ACA3B923CC1D93F6F /* SettingsView.swift in Sources */,
 				37904F4AD6BC154466AE52ED /* UpdateChecker.swift in Sources */,
+				79653B6A3481AA9CB070C247 /* WindowArranger.swift in Sources */,
 				0A09240E19DCB246AC8710BB /* WindowInfo.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -268,7 +278,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				B9436CCDD1174079AEE5955C /* CustomizationTests.swift in Sources */,
+				83E81308B6D3BEEA7B6106CE /* CustomizationTests.swift in Sources */,
 				1086C0F4F79BB02F0980393C /* LicenseManagerTests.swift in Sources */,
 				B85117BC511D147340A86ECC /* PolarLicenseClientTests.swift in Sources */,
 				76B126958DD47A809D5045DA /* UpdateCheckerTests.swift in Sources */,
@@ -285,6 +295,18 @@
 			targetProxy = 90B89528EA13B0DF0D9C1975 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
+
+/* Begin PBXVariantGroup section */
+		D816A80FDC2F089A6410D324 /* Localizable.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				89619C1730FBD48DA224B459 /* en */,
+				BDC0A2A3188A0B6668EF3BB0 /* ja */,
+			);
+			name = Localizable.strings;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
 		09AFA063E45D5DB50DC8BC55 /* Debug */ = {

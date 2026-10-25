@@ -64,11 +64,11 @@ struct OnboardingView: View {
                     .foregroundStyle(Color.accentColor)
                     .id(currentStep)
 
-                Text(step.title)
+                Text(LocalizedStringKey(step.title))
                     .font(.title)
                     .fontWeight(.bold)
 
-                Text(step.description)
+                Text(LocalizedStringKey(step.description))
                     .font(.body)
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
@@ -79,7 +79,7 @@ struct OnboardingView: View {
                 }
 
                 if let actionTitle = step.action {
-                    Button(actionTitle) {
+                    Button(LocalizedStringKey(actionTitle)) {
                         handleStepAction()
                     }
                     .buttonStyle(.bordered)
@@ -147,7 +147,7 @@ struct AccessibilityStatusView: View {
         HStack(spacing: 8) {
             Image(systemName: isGranted ? "checkmark.circle.fill" : "xmark.circle.fill")
                 .foregroundStyle(isGranted ? .green : .red)
-            Text(isGranted ? "Accessibility access granted" : "Accessibility access not granted")
+            Text(LocalizedStringKey(isGranted ? "Accessibility access granted" : "Accessibility access not granted"))
                 .font(.callout)
                 .foregroundStyle(isGranted ? .green : .red)
         }

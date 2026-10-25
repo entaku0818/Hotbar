@@ -3,6 +3,8 @@ configFiles:
   Debug: Config/Debug.xcconfig
   Release: Config/Release.xcconfig
 options:
+  developmentLanguage: en
+  knownRegions: [en, ja]
   bundleIdPrefix: com.entaku
   deploymentTarget:
     macOS: "13.0"

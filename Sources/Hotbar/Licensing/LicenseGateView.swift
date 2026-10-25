@@ -13,11 +13,11 @@ struct LicenseGateView: View {
                 .font(.system(size: 48, weight: .light))
                 .foregroundStyle(.secondary)
 
-            Text(headline)
+            Text(LocalizedStringKey(headline))
                 .font(.title2)
                 .fontWeight(.bold)
 
-            Text(explanation)
+            Text(LocalizedStringKey(explanation))
                 .font(.callout)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
@@ -42,7 +42,7 @@ struct LicenseGateView: View {
                         .textFieldStyle(.roundedBorder)
                         .disableAutocorrection(true)
 
-                    Button(isActivating ? "Checking…" : "Activate") {
+                    Button(LocalizedStringKey(isActivating ? "Checking…" : "Activate")) {
                         activate()
                     }
                     .disabled(licenseKeyInput.trimmingCharacters(in: .whitespaces).isEmpty || isActivating)
@@ -50,7 +50,7 @@ struct LicenseGateView: View {
                 .frame(maxWidth: 360)
 
                 if let error = licenseManager.activationErrorMessage {
-                    Text(error)
+                    Text(LocalizedStringKey(error))
                         .font(.caption)
                         .foregroundStyle(.red)
                         .multilineTextAlignment(.center)
