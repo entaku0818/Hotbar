@@ -194,6 +194,16 @@ xcrun stapler validate "${APP_PATH}" 2>&1
 echo "--- stapler validate (dmg) ---"
 xcrun stapler validate "${DMG_PATH}" 2>&1
 
+# Version-less copy for the stable landing link:
+#   hotbar-landing.vercel.app/download → releases/latest/download/Hotbar.dmg
+# Upload BOTH files to every release, or /download breaks (404) once it's latest.
+STABLE_DIR="$(pwd)/build/stable"
+mkdir -p "${STABLE_DIR}"
+cp "${DMG_PATH}" "${STABLE_DIR}/Hotbar.dmg"
+
 echo ""
 echo "✓ Done: ${DMG_PATH}"
 echo "  Notarized + stapled. Share this DMG for direct distribution."
+echo "  Release with both assets:"
+echo "    gh release create v${VERSION} --notes-file <notes> \\"
+echo "      build/${DMG_NAME} build/stable/Hotbar.dmg"

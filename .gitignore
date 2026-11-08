@@ -10,3 +10,4 @@ build/*.bak
 *.xcarchive
 build/launch-proof/
 build/demo-videos/
+build/stable/

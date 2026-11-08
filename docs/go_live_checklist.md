@@ -77,7 +77,7 @@ Polar.sh で本番商品を作ったあと、**何をどの順で差し替えれ
 
 | 項目 | 入れた値 |
 |---|---|
-| 連絡先（4箇所） | entaku19890818@gmail.com |
+| 連絡先（4箇所） | support@entaku.app |
 | 準拠法 | 日本法 |
 | ライセンス台数 | 購入者本人が所有・管理するMacであれば台数無制限 |
 | サポート窓口 | GitHub Issues + メール |
@@ -312,7 +312,7 @@ public 化で解消。
 > href="/privacy.html"
 > href="https://buy.polar.sh/polar_cl_..."
 > href="https://github.com/entaku0818/Hotbar/releases/download/v1.0.0/Hotbar-1.0.0.dmg"
-> href="mailto:entaku19890818@gmail.com"
+> href="mailto:support@entaku.app"
 > $ curl -s -o /dev/null -w '%{http_code}' https://hotbar-landing.vercel.app/eula.html
 > 200
 > ```
@@ -409,6 +409,31 @@ isNewer("v1.1.0", than: "1.0.0") = True    ← v1.1.0 を残していたら毎�
 
 **リリースのたびに `Info.plist` と Release タグを揃えること。** ずれると更新通知が
 出続けるか、逆に出なくなる。
+
+### 毎回のリリース手順（v1.1.2〜、ランディングは触らない）
+
+2026-11-09 からランディングの DMG リンクは **`/download` 固定**になった
+（Hotbar-landing `vercel.json` の redirect → `releases/latest/download/Hotbar.dmg`）。
+**リリースのたびにランディングを編集・デプロイする必要はない。** 代わりに、各 Release に
+**バージョン無しの `Hotbar.dmg` を必ず同梱する**こと。忘れると latest になった瞬間に
+`/download` が 404 になる。
+
+```bash
+# 1. Info.plist の CFBundleShortVersionString / CFBundleVersion を上げる
+#    （PlistBuddy はファイル全体を整形し直すので sed で2行だけ変える）
+# 2. build / test / lint 緑 → commit & push
+./scripts/distribute.sh 1.x.y          # build/Hotbar-1.x.y.dmg と build/stable/Hotbar.dmg を作る
+./scripts/verify_dmg.sh build/Hotbar-1.x.y.dmg   # 「✅ 配って良い」を確認
+git tag -a v1.x.y -m "Hotbar 1.x.y" && git push origin v1.x.y
+gh release create v1.x.y --title "Hotbar 1.x.y" --notes-file <notes> \
+  build/Hotbar-1.x.y.dmg build/stable/Hotbar.dmg
+# 3. 公開URLで確認（アップロード直後は数分 504 になることがある。v1.1.2 では約10分）
+curl -sL -o /tmp/h.dmg -w '%{http_code}\n' https://hotbar-landing.vercel.app/download && shasum -a 256 /tmp/h.dmg
+```
+
+ランディング（Hotbar-landing）は **main = 本番**。Vercel の Git 連携済み（production branch: `main`）で、
+main への push で自動デプロイされる。**`vercel deploy --prod` を手元から打たない**
+（以前それで本番が `codex/landing-analytics` から出ていて、main が 1.1.0 のまま放置されていた）。
 
 ### ローカルに残っている古いDMGに注意
 
