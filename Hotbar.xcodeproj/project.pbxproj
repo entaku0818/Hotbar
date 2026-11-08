@@ -13,6 +13,7 @@
 		142EFAB10F67E88132F2FBEC /* WindowInfoTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0ACFE9F19048F82EB7BF58BD /* WindowInfoTests.swift */; };
 		14FD789DB2C56FBBC913525F /* HotbarStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 599BB33146DC51BA58085A55 /* HotbarStore.swift */; };
 		19CF7B4965B37E0C006C3B71 /* OverlayWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B74A331CD8B6B69AD90A3EF2 /* OverlayWindowController.swift */; };
+		1BA0D9E16D8B7B8F06E4DEDA /* WindowMatchingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7BAF689B952A1D6E284E440 /* WindowMatchingTests.swift */; };
 		24D00CCBABACB3B3BA4410D2 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 6571C4CA6B38676448ACE3E3 /* Assets.xcassets */; };
 		2A878A22C7EDF163782A6726 /* LicenseManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F38306D9932E4B892685D6EE /* LicenseManager.swift */; };
 		37904F4AD6BC154466AE52ED /* UpdateChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2596B0D4B3A101B2C6909195 /* UpdateChecker.swift */; };
@@ -77,6 +78,7 @@
 		E38B2840A45F115CE6235EDF /* Hotbar.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Hotbar.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		EDA3E47B98DD78894C9CA4E5 /* Localization.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Localization.swift; sourceTree = "<group>"; };
 		F38306D9932E4B892685D6EE /* LicenseManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LicenseManager.swift; sourceTree = "<group>"; };
+		F7BAF689B952A1D6E284E440 /* WindowMatchingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowMatchingTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -154,6 +156,7 @@
 				21D9A296C26B483CB4B34648 /* PolarLicenseClientTests.swift */,
 				1DE73A487A76D10C015C04F3 /* UpdateCheckerTests.swift */,
 				0ACFE9F19048F82EB7BF58BD /* WindowInfoTests.swift */,
+				F7BAF689B952A1D6E284E440 /* WindowMatchingTests.swift */,
 			);
 			name = HotbarTests;
 			path = Sources/HotbarTests;
@@ -283,6 +286,7 @@
 				B85117BC511D147340A86ECC /* PolarLicenseClientTests.swift in Sources */,
 				76B126958DD47A809D5045DA /* UpdateCheckerTests.swift in Sources */,
 				142EFAB10F67E88132F2FBEC /* WindowInfoTests.swift in Sources */,
+				1BA0D9E16D8B7B8F06E4DEDA /* WindowMatchingTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

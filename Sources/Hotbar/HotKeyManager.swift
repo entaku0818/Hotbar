@@ -147,10 +147,14 @@ final class HotKeyManager {
 
     private func handleFlagsChanged(flags: CGEventFlags) {
         guard AppSettings.shared.holdMode,
-              overlayController?.isVisible == true,
               hotkey.hasModifier,
               !hotkey.modifiersStillHeld(cgFlags: flags) else { return }
-        DispatchQueue.main.async { HotbarStore.shared.activateSelectedWindow() }
+        // Check visibility on main, after any queued show(): a quick tap releases the modifier
+        // before the show dispatched by the key-down has run.
+        DispatchQueue.main.async {
+            guard self.overlayController?.isVisible == true else { return }
+            HotbarStore.shared.activateSelectedWindow()
+        }
     }
 
     private func handleHotkeyPress(reverse: Bool) {
@@ -163,7 +167,8 @@ final class HotKeyManager {
                     controller.toggle()
                 }
             } else {
-                controller.show()
+                let quickSwitch = AppSettings.shared.holdMode && self.hotkey.hasModifier
+                controller.show(revealDelay: quickSwitch ? OverlayWindowController.quickSwitchRevealDelay : 0)
             }
         }
     }
@@ -175,11 +180,10 @@ final class HotKeyManager {
         case 53: // ESC
             DispatchQueue.main.async { self.overlayController?.hide() }
             return nil
-        case 123, 126: // ← ↑
-            DispatchQueue.main.async { HotbarStore.shared.cycleSelection(forward: false) }
-            return nil
-        case 124, 125: // → ↓
-            DispatchQueue.main.async { HotbarStore.shared.cycleSelection(forward: true) }
+        case 123, 124, 125, 126: // ← → ↓ ↑
+            if let direction = Self.arrowDirection(for: keyCode) {
+                DispatchQueue.main.async { HotbarStore.shared.moveSelection(direction) }
+            }
             return nil
         case 36: // Return
             DispatchQueue.main.async { HotbarStore.shared.activateSelectedWindow() }
@@ -224,19 +228,7 @@ final class HotKeyManager {
             }
             if event.type == .keyUp { HoldKeyDetector.shared.cancel(); return }
             if self.hotkey.matchesIgnoringShift(keyCode: Int64(event.keyCode), cgFlags: Self.cgFlags(from: event.modifierFlags)) {
-                let reverse = event.modifierFlags.contains(.shift) && !self.hotkey.shift
-                DispatchQueue.main.async {
-                    guard let controller = self.overlayController else { return }
-                    if controller.isVisible {
-                        if AppSettings.shared.holdMode {
-                            HotbarStore.shared.cycleSelection(forward: !reverse)
-                        } else {
-                            controller.toggle()
-                        }
-                    } else {
-                        controller.show()
-                    }
-                }
+                self.handleHotkeyPress(reverse: event.modifierFlags.contains(.shift) && !self.hotkey.shift)
                 return
             }
             guard self.overlayController?.isVisible == true else { return }
@@ -260,8 +252,10 @@ final class HotKeyManager {
             return
         }
 
-        if keyCode == 123 || keyCode == 126 { HotbarStore.shared.cycleSelection(forward: false); return }
-        if keyCode == 124 || keyCode == 125 { HotbarStore.shared.cycleSelection(forward: true); return }
+        if let direction = Self.arrowDirection(for: Int64(keyCode)) {
+            HotbarStore.shared.moveSelection(direction)
+            return
+        }
         if keyCode == 36 { HotbarStore.shared.activateSelectedWindow(); return }
 
         if flags.contains(.command), let digit = Self.slotDigit(for: Int64(keyCode)) {
@@ -275,6 +269,10 @@ final class HotKeyManager {
         if !flags.contains(.command), let digit = Self.slotDigit(for: Int64(keyCode)) {
             HoldKeyDetector.shared.start(digit: digit)
         }
+    }
+
+    static func arrowDirection(for keyCode: Int64) -> MoveDirection? {
+        [123: .left, 124: .right, 125: .down, 126: .up][keyCode]
     }
 
     static func slotDigit(for keyCode: Int64) -> Int? {

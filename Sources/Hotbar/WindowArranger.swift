@@ -153,7 +153,7 @@ enum WindowArranger {
         return (windows[index], target)
     }
 
-    private static func frame(of window: AXUIElement) -> CGRect? {
+    static func frame(of window: AXUIElement) -> CGRect? {
         var positionRef: CFTypeRef?
         var sizeRef: CFTypeRef?
         guard AXUIElementCopyAttributeValue(window, kAXPositionAttribute as CFString, &positionRef) == .success,

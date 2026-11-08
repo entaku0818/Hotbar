@@ -112,42 +112,71 @@ struct WindowGridView: View {
     }
 
     var body: some View {
-        ScrollView {
-            if windows.isEmpty {
-                VStack(spacing: 12) {
-                    Image(systemName: "rectangle.on.rectangle.slash")
-                        .font(.system(size: 40))
-                        .foregroundStyle(.tertiary)
-                    Text("No windows found")
-                        .foregroundStyle(.secondary)
-                }
-                .frame(maxWidth: .infinity, minHeight: 200)
-            } else {
-                LazyVGrid(columns: columns, spacing: 12) {
-                    ForEach(Array(windows.enumerated()), id: \.element.id) { index, window in
-                        WindowCell(
-                            window: window,
-                            isSelected: selectedIndex == index,
-                            previewHeight: cellWidth * 0.68
-                        )
-                        .onTapGesture {
-                            selectedIndex = index
-                            // Hide overlay first so it doesn't steal focus
-                            NotificationCenter.default.post(name: .hideOverlay, object: nil)
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.08) {
-                                HotbarStore.shared.activateWindow(window)
-                            }
-                        }
-                        .onHover { hovering in
-                            if hovering {
-                                selectedIndex = index
-                            }
-                        }
+        ScrollViewReader { proxy in
+            ScrollView {
+                if windows.isEmpty {
+                    VStack(spacing: 12) {
+                        Image(systemName: "rectangle.on.rectangle.slash")
+                            .font(.system(size: 40))
+                            .foregroundStyle(.tertiary)
+                        Text("No windows found")
+                            .foregroundStyle(.secondary)
                     }
+                    .frame(maxWidth: .infinity, minHeight: 200)
+                } else {
+                    grid
                 }
-                .padding(.horizontal, 20)
+            }
+            .coordinateSpace(name: Self.gridSpace)
+            .onPreferenceChange(CellFramesKey.self) { HotbarStore.shared.cellFrames = $0 }
+            .onChange(of: selectedIndex) { index in
+                guard windows.indices.contains(index) else { return }
+                withAnimation(.easeOut(duration: 0.15)) { proxy.scrollTo(windows[index].id) }
             }
         }
+    }
+
+    private static let gridSpace = "windowGrid"
+
+    private var grid: some View {
+        LazyVGrid(columns: columns, spacing: 16) {
+            ForEach(Array(windows.enumerated()), id: \.element.id) { index, window in
+                WindowCell(
+                    window: window,
+                    isSelected: selectedIndex == index,
+                    previewHeight: cellWidth * 0.68
+                )
+                .id(window.id)
+                .background(GeometryReader { geometry in
+                    Color.clear.preference(key: CellFramesKey.self,
+                                           value: [index: geometry.frame(in: .named(Self.gridSpace))])
+                })
+                .onTapGesture {
+                    selectedIndex = index
+                    // Hide overlay first so it doesn't steal focus
+                    NotificationCenter.default.post(name: .hideOverlay, object: nil)
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.08) {
+                        HotbarStore.shared.activateWindow(window)
+                    }
+                }
+                .onContinuousHover { phase in
+                    // Only an actual pointer move selects; a cursor resting where the
+                    // switcher opens must not override the default (previous) window.
+                    if case .active = phase, selectedIndex != index, HotbarStore.shared.pointerHasMoved() {
+                        selectedIndex = index
+                    }
+                }
+            }
+        }
+        .padding(.horizontal, 20)
+        .padding(.vertical, 10)
+    }
+}
+
+private struct CellFramesKey: PreferenceKey {
+    static var defaultValue: [Int: CGRect] = [:]
+    static func reduce(value: inout [Int: CGRect], nextValue: () -> [Int: CGRect]) {
+        value.merge(nextValue(), uniquingKeysWith: { _, new in new })
     }
 }
 
@@ -159,55 +188,90 @@ struct WindowCell: View {
     let previewHeight: CGFloat
     @ObservedObject private var settings = AppSettings.shared
 
+    private var accent: Color { settings.accent.color }
+    /// Without Screen Recording the title falls back to the app name — don't print it twice.
+    private var hasDistinctTitle: Bool { settings.showTitles && window.title != window.appName }
+
     var body: some View {
-        VStack(spacing: 6) {
-            ZStack {
-                RoundedRectangle(cornerRadius: 10)
-                    .fill(isSelected ? settings.accent.color.opacity(0.2) : Color.white.opacity(0.05))
+        VStack(spacing: 8) {
+            ZStack(alignment: .bottomLeading) {
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(isSelected ? accent.opacity(0.3) : Color.white.opacity(0.04))
                     .overlay(
-                        RoundedRectangle(cornerRadius: 10)
+                        RoundedRectangle(cornerRadius: 12)
                             .strokeBorder(
-                                isSelected ? settings.accent.color : Color.white.opacity(0.1),
-                                lineWidth: isSelected ? 2 : 1
+                                isSelected ? accent : Color.white.opacity(0.08),
+                                lineWidth: isSelected ? 4 : 1
                             )
                     )
+                    .shadow(color: isSelected ? accent.opacity(0.8) : .clear, radius: isSelected ? 18 : 0)
 
-                if let thumbnail = window.thumbnail {
-                    Image(nsImage: thumbnail)
-                        .resizable()
-                        .scaledToFit()
-                        .clipShape(RoundedRectangle(cornerRadius: 8))
-                        .padding(6)
-                } else if let icon = window.appIcon {
+                preview
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+
+                if window.thumbnail != nil, let icon = window.appIcon {
                     Image(nsImage: icon)
                         .resizable()
                         .scaledToFit()
-                        .frame(width: 48, height: 48)
-                } else {
-                    Image(systemName: "app.fill")
-                        .font(.system(size: 40))
-                        .foregroundStyle(.tertiary)
+                        .frame(width: isSelected ? 30 : 24, height: isSelected ? 30 : 24)
+                        .shadow(color: .black.opacity(0.4), radius: 3, y: 1)
+                        .offset(x: -6, y: 6)
                 }
             }
             .frame(height: previewHeight)
 
-            VStack(spacing: 2) {
-                Text(window.appName)
-                    .font(.caption)
-                    .fontWeight(.semibold)
-                    .foregroundStyle(.primary)
-                    .lineLimit(1)
-                if settings.showTitles {
-                    Text(window.title)
-                        .font(.caption2)
-                        .foregroundStyle(.secondary)
-                        .lineLimit(1)
-                }
-            }
+            nameplate
         }
         .contentShape(Rectangle())
-        .scaleEffect(isSelected ? 1.03 : 1.0)
-        .animation(.spring(response: 0.2), value: isSelected)
+        // Dim the rest so the switch target stands out at a glance.
+        .opacity(isSelected ? 1.0 : 0.5)
+        .saturation(isSelected ? 1.0 : 0.5)
+        .scaleEffect(isSelected ? 1.08 : 0.96)
+        .zIndex(isSelected ? 1 : 0)
+        .animation(.spring(response: 0.22, dampingFraction: 0.8), value: isSelected)
+    }
+
+    private var nameplate: some View {
+        VStack(spacing: 2) {
+            Text(hasDistinctTitle ? window.title : window.appName)
+                .font(.system(size: isSelected ? 14 : 12, weight: isSelected ? .bold : .medium))
+                .foregroundStyle(isSelected ? Color.white : Color.primary)
+                .lineLimit(1)
+                .truncationMode(.middle)
+            if hasDistinctTitle {
+                Text(window.appName)
+                    .font(.system(size: 11, weight: isSelected ? .semibold : .regular))
+                    .foregroundStyle(isSelected ? Color.white.opacity(0.85) : Color.secondary)
+                    .lineLimit(1)
+            }
+        }
+        .padding(.horizontal, 10)
+        .padding(.vertical, isSelected ? 6 : 3)
+        .frame(maxWidth: .infinity)
+        .background(
+            RoundedRectangle(cornerRadius: 8)
+                .fill(isSelected ? accent : Color.clear)
+                .shadow(color: isSelected ? accent.opacity(0.5) : .clear, radius: 6, y: 2)
+        )
+    }
+
+    @ViewBuilder private var preview: some View {
+        if let thumbnail = window.thumbnail {
+            Image(nsImage: thumbnail)
+                .resizable()
+                .scaledToFit()
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+                .padding(isSelected ? 8 : 6)
+        } else if let icon = window.appIcon {
+            Image(nsImage: icon)
+                .resizable()
+                .scaledToFit()
+                .frame(width: isSelected ? 64 : 48, height: isSelected ? 64 : 48)
+        } else {
+            Image(systemName: "app.fill")
+                .font(.system(size: 40))
+                .foregroundStyle(.tertiary)
+        }
     }
 }
 

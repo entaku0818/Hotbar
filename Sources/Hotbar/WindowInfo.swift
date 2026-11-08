@@ -85,52 +85,27 @@ final class WindowFetcher {
     static func activateWindow(_ windowInfo: WindowInfo) {
         NSLog("[Hotbar] activateWindow: pid=%d app=%@ title=%@", windowInfo.pid, windowInfo.appName, windowInfo.title)
 
-        let apps = NSWorkspace.shared.runningApplications
-        guard let app = apps.first(where: { $0.processIdentifier == windowInfo.pid }) else {
+        guard let app = NSRunningApplication(processIdentifier: windowInfo.pid) else {
             NSLog("[Hotbar] activateWindow: app not found for pid=%d", windowInfo.pid)
             return
         }
 
-        // Step 1: AX で特定ウィンドウを前面に
         let axApp = AXUIElementCreateApplication(windowInfo.pid)
-        var windowsRef: CFTypeRef?
-        let axResult = AXUIElementCopyAttributeValue(axApp, kAXWindowsAttribute as CFString, &windowsRef)
-        NSLog("[Hotbar] AXCopyWindows result=%d", axResult.rawValue)
+        let target = axWindow(for: windowInfo, in: axApp)
+        if target == nil { NSLog("[Hotbar] activateWindow: no unique AX window match") }
 
-        if axResult == .success, let axWindows = windowsRef as? [AXUIElement] {
-            NSLog("[Hotbar] AX windows count=%d", axWindows.count)
-            var matched = false
-            for axWindow in axWindows {
-                var titleRef: CFTypeRef?
-                AXUIElementCopyAttributeValue(axWindow, kAXTitleAttribute as CFString, &titleRef)
-                let axTitle = titleRef as? String ?? ""
-                NSLog("[Hotbar] AX window title='%@'", axTitle)
-                if axTitle == windowInfo.title {
-                    AXUIElementSetAttributeValue(axWindow, kAXMainAttribute as CFString, kCFBooleanTrue)
-                    AXUIElementSetAttributeValue(axWindow, kAXFrontmostAttribute as CFString, kCFBooleanTrue)
-                    matched = true
-                    NSLog("[Hotbar] AX raise matched window")
-                    break
-                }
-            }
-            if !matched {
-                // タイトルが変わっていても最初のウィンドウを前面に
-                if let first = axWindows.first {
-                    AXUIElementSetAttributeValue(first, kAXMainAttribute as CFString, kCFBooleanTrue)
-                    AXUIElementSetAttributeValue(first, kAXFrontmostAttribute as CFString, kCFBooleanTrue)
-                    NSLog("[Hotbar] AX raise first window (title mismatch fallback)")
-                }
-            }
+        // Activate the app first. Apps such as Chrome bring their own key window forward on
+        // activation, so the specific window must be raised *after* activation (and again once
+        // the activation has settled) — otherwise same-app switching lands on the wrong window.
+        if let target { raise(target, in: axApp) }
+        let activated = app.activate(options: [.activateIgnoringOtherApps])
+        AXUIElementSetAttributeValue(axApp, kAXFrontmostAttribute as CFString, kCFBooleanTrue)
+        NSLog("[Hotbar] NSRunningApplication.activate result=%d", activated ? 1 : 0)
+        if let target {
+            raise(target, in: axApp)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { raise(target, in: axApp) }
         }
 
-        // Step 2: アプリを前面に
-        AXUIElementSetAttributeValue(axApp, kAXFrontmostAttribute as CFString, kCFBooleanTrue)
-
-        // Step 3: NSRunningApplication でも activate（AX が効かないアプリ用）
-        let activated = app.activate(options: [.activateIgnoringOtherApps])
-        NSLog("[Hotbar] NSRunningApplication.activate result=%d", activated ? 1 : 0)
-
-        // Step 4: AppleScript fallback
         if !activated {
             let src = "tell application \"\(windowInfo.appName)\" to activate"
             if let script = NSAppleScript(source: src) {
@@ -140,4 +115,62 @@ final class WindowFetcher {
             }
         }
     }
+
+    private static func raise(_ window: AXUIElement, in app: AXUIElement) {
+        AXUIElementSetAttributeValue(window, kAXMinimizedAttribute as CFString, kCFBooleanFalse)
+        AXUIElementPerformAction(window, kAXRaiseAction as CFString)
+        AXUIElementSetAttributeValue(window, kAXMainAttribute as CFString, kCFBooleanTrue)
+        AXUIElementSetAttributeValue(app, kAXFocusedWindowAttribute as CFString, window)
+    }
+
+    /// Resolves the exact AX window for a CG window. Same-app windows often share titles
+    /// (or have empty titles without Screen Recording), so titles are only a last resort.
+    private static func axWindow(for info: WindowInfo, in axApp: AXUIElement) -> AXUIElement? {
+        var windowsRef: CFTypeRef?
+        guard AXUIElementCopyAttributeValue(axApp, kAXWindowsAttribute as CFString, &windowsRef) == .success,
+              let axWindows = windowsRef as? [AXUIElement], !axWindows.isEmpty else { return nil }
+
+        let candidates = axWindows.map { window -> WindowCandidate in
+            var windowID: CGWindowID = 0
+            var titleRef: CFTypeRef?
+            AXUIElementCopyAttributeValue(window, kAXTitleAttribute as CFString, &titleRef)
+            return WindowCandidate(
+                windowID: _AXUIElementGetWindow(window, &windowID) == .success ? windowID : nil,
+                frame: WindowArranger.frame(of: window),
+                title: titleRef as? String
+            )
+        }
+        let index = matchingWindowIndex(id: info.id, frame: currentFrame(of: info),
+                                        title: info.title, candidates: candidates)
+        return index.map { axWindows[$0] }
+    }
+
+    struct WindowCandidate: Equatable {
+        let windowID: CGWindowID?
+        let frame: CGRect?
+        let title: String?
+    }
+
+    /// Match priority: window ID → unique frame → unique title. Returns nil instead of guessing.
+    static func matchingWindowIndex(id: CGWindowID, frame: CGRect?, title: String,
+                                    candidates: [WindowCandidate]) -> Int? {
+        if let index = candidates.firstIndex(where: { $0.windowID == id }) { return index }
+        if let frame, let index = WindowArranger.matchingIndex(frame: frame, candidates: candidates.map(\.frame)) {
+            return index
+        }
+        let titled = candidates.indices.filter { candidates[$0].title == title }
+        return titled.count == 1 ? titled.first : nil
+    }
+
+    private static func currentFrame(of info: WindowInfo) -> CGRect? {
+        guard let records = CGWindowListCopyWindowInfo(.optionIncludingWindow, info.id) as? [[CFString: Any]],
+              let record = records.first(where: { ($0[kCGWindowNumber] as? CGWindowID) == info.id }),
+              record[kCGWindowOwnerPID] as? pid_t == info.pid,
+              let bounds = record[kCGWindowBounds] as? [String: Any] else { return nil }
+        return CGRect(dictionaryRepresentation: bounds as CFDictionary)
+    }
 }
+
+/// Private but stable (used by most macOS window switchers): maps an AX window to its CGWindowID.
+@_silgen_name("_AXUIElementGetWindow")
+private func _AXUIElementGetWindow(_ element: AXUIElement, _ windowID: inout CGWindowID) -> AXError

@@ -2,6 +2,8 @@ import Foundation
 import AppKit
 import ScreenCaptureKit
 
+enum MoveDirection { case left, right, up, down }
+
 final class HotbarStore: ObservableObject {
     static let shared = HotbarStore()
 
@@ -9,6 +11,12 @@ final class HotbarStore: ObservableObject {
     @Published var windowActionMessage: String?
     @Published var windows: [WindowInfo] = []
     @Published var selectedIndex: Int = 0
+
+    /// On-screen frames of the grid cells (index → frame), reported by the overlay for ↑↓ navigation.
+    var cellFrames: [Int: CGRect] = [:]
+    /// Mouse location when the switcher opened. Hover only selects once the pointer really moves,
+    /// so a cursor that happens to rest over a cell doesn't override the default selection.
+    private var pointerAnchor: CGPoint?
 
     private var thumbnailTask: Task<Void, Never>?
 
@@ -35,8 +43,9 @@ final class HotbarStore: ObservableObject {
         windowActionMessage = nil
         // Preserve previews synchronously so opening the panel never flashes back to icons.
         windows = Self.reusingThumbnails(in: fetched, from: windows, allowed: CGPreflightScreenCaptureAccess())
-        selectedIndex = settings.holdMode
-            ? (fetched.firstIndex(where: { $0.id == previousID }) ?? 0) : 0
+        // Like ⌘Tab: start on the previously used window (2nd in recency), not the current one.
+        selectedIndex = fetched.firstIndex(where: { $0.id == previousID }) ?? 0
+        pointerAnchor = NSEvent.mouseLocation
         loadThumbnails()
     }
 
@@ -89,6 +98,20 @@ final class HotbarStore: ObservableObject {
         guard !windows.isEmpty else { return }
         let count = windows.count
         selectedIndex = ((selectedIndex + (forward ? 1 : -1)) % count + count) % count
+    }
+
+    func moveSelection(_ direction: MoveDirection) {
+        guard !windows.isEmpty else { return }
+        selectedIndex = Self.neighborIndex(from: selectedIndex, direction: direction,
+                                           frames: cellFrames, count: windows.count)
+    }
+
+    /// True once the pointer has moved since the switcher opened.
+    func pointerHasMoved(to location: CGPoint = NSEvent.mouseLocation) -> Bool {
+        guard let anchor = pointerAnchor else { return true }
+        guard hypot(location.x - anchor.x, location.y - anchor.y) > 3 else { return false }
+        pointerAnchor = nil
+        return true
     }
 
     func activateSelectedWindow() {
@@ -251,5 +274,43 @@ final class HotbarStore: ObservableObject {
             )
         }
         slots = restored
+    }
+}
+
+// MARK: - Grid navigation
+
+extension HotbarStore {
+    /// ←→ step through the list (wrapping). ↑↓ move to the visually nearest cell in the
+    /// adjacent row, wrapping between the top and bottom rows.
+    static func neighborIndex(from current: Int, direction: MoveDirection,
+                              frames: [Int: CGRect], count: Int) -> Int {
+        guard count > 0 else { return 0 }
+        let step: (Int) -> Int = { ((current + $0) % count + count) % count }
+        switch direction {
+        case .left: return step(-1)
+        case .right: return step(1)
+        case .up, .down: break
+        }
+        let visible = frames.filter { $0.key < count }
+        guard let origin = visible[current] else { return step(direction == .up ? -1 : 1) }
+        let tolerance = origin.height / 2
+        let others = visible.filter { abs($0.value.midY - origin.midY) > tolerance }
+        guard !others.isEmpty else { return step(direction == .up ? -1 : 1) }
+        let ahead = others.filter { direction == .up ? $0.value.midY < origin.midY : $0.value.midY > origin.midY }
+        let rowY: CGFloat
+        if ahead.isEmpty {
+            // Wrap: ↑ on the top row goes to the bottom row, ↓ on the bottom row to the top.
+            let ys = others.map(\.value.midY)
+            rowY = (direction == .up ? ys.max() : ys.min()) ?? origin.midY
+        } else {
+            let ys = ahead.map(\.value.midY)
+            rowY = (direction == .up ? ys.max() : ys.min()) ?? origin.midY
+        }
+        let row = others.filter { abs($0.value.midY - rowY) <= tolerance }
+        return row.min { lhs, rhs in
+            let left = abs(lhs.value.midX - origin.midX)
+            let right = abs(rhs.value.midX - origin.midX)
+            return left == right ? lhs.key < rhs.key : left < right
+        }?.key ?? current
     }
 }

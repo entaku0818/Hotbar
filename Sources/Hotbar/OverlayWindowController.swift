@@ -3,7 +3,9 @@ import SwiftUI
 
 final class OverlayWindowController: NSObject {
     private var panel: NSPanel?
+    /// True while a switcher session is active — even before the panel is on screen.
     private(set) var isVisible = false
+    private var pendingReveal: DispatchWorkItem?
 
     override init() {
         super.init()
@@ -42,7 +44,11 @@ final class OverlayWindowController: NSObject {
         )
     }
 
-    func show() {
+    /// Delay before the panel appears on a held-modifier hotkey. Releasing within it switches to the
+    /// previous window without the list ever flashing on screen (like ⌘Tab).
+    static let quickSwitchRevealDelay: TimeInterval = 0.15
+
+    func show(revealDelay: TimeInterval = 0) {
         guard let panel = panel else { return }
 
         guard !LicenseManager.shared.isGated else {
@@ -59,8 +65,19 @@ final class OverlayWindowController: NSObject {
             panel.setFrame(NSRect(origin: origin, size: panelSize), display: true)
         }
 
-        panel.orderFrontRegardless()
         isVisible = true
+        pendingReveal?.cancel()
+        guard revealDelay > 0 else {
+            panel.orderFrontRegardless()
+            return
+        }
+        let reveal = DispatchWorkItem { [weak self] in
+            guard let self, self.isVisible else { return }
+            self.pendingReveal = nil
+            panel.orderFrontRegardless()
+        }
+        pendingReveal = reveal
+        DispatchQueue.main.asyncAfter(deadline: .now() + revealDelay, execute: reveal)
     }
 
     static func panelSize(in visibleFrame: CGRect) -> CGSize {
@@ -69,6 +86,8 @@ final class OverlayWindowController: NSObject {
     }
 
     func hide() {
+        pendingReveal?.cancel()
+        pendingReveal = nil
         HotbarStore.shared.cancelThumbnailLoading()
         panel?.orderOut(nil)
         isVisible = false
